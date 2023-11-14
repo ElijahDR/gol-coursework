@@ -58,10 +58,14 @@ func calcStartY(p Params) []int {
 	return startY
 }
 
-func liveCellsReport(c distributorChannels, cells chan AliveCellsCount) {
-	ticker := time.NewTicker(2000 * time.Millisecond)
-	for range ticker.C {
-		c.events <- (<-cells)
+func liveCellsReport(ticker *time.Ticker, c distributorChannels, cells chan AliveCellsCount, done chan bool) {
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			c.events <- (<-cells)
+		}
 	}
 }
 
@@ -103,7 +107,9 @@ func distributor(p Params, c distributorChannels) {
 	endX := p.ImageWidth
 
 	aliveCells := make(chan AliveCellsCount, 1)
-	go liveCellsReport(c, aliveCells)
+	done := make(chan bool)
+	ticker := time.NewTicker(2000 * time.Millisecond)
+	go liveCellsReport(ticker, c, aliveCells, done)
 	aliveCells <- AliveCellsCount{CellsCount: 0, CompletedTurns: 0}
 
 	startY := calcStartY(p)
@@ -133,7 +139,12 @@ func distributor(p Params, c distributorChannels) {
 
 		world = newWorld
 		immutableWorld = makeImmutableMatrix(world)
-		aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
+		if len(aliveCells) == 0 {
+			aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
+		} else {
+			<-aliveCells
+			aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
+		}
 
 		c.events <- TurnComplete{
 			CompletedTurns: i,
@@ -149,6 +160,14 @@ func distributor(p Params, c distributorChannels) {
 		Alive:          calcAliveCells(world),
 	}
 
+	c.ioCommand <- ioOutput
+	c.ioFilename <- fmt.Sprint(p.ImageWidth, "x", p.ImageHeight, "x", p.Turns)
+	for y := 0; y < p.ImageHeight; y++ {
+		for x := 0; x < p.ImageWidth; x++ {
+			c.ioOutput <- immutableWorld(y, x)
+		}
+	}
+
 	// Make sure that the Io has finished any output before exiting.
 	c.ioCommand <- ioCheckIdle
 	<-c.ioIdle
@@ -156,6 +175,8 @@ func distributor(p Params, c distributorChannels) {
 	c.events <- StateChange{turn, Quitting}
 
 	// Close the channel to stop the SDL goroutine gracefully. Removing may cause deadlock.
+	ticker.Stop()
+	done <- true
 	close(c.events)
 }
 
