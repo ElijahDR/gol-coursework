@@ -2,6 +2,7 @@ package gol
 
 import (
 	"fmt"
+	"time"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -57,6 +58,13 @@ func calcStartY(p Params) []int {
 	return startY
 }
 
+func liveCellsReport(c distributorChannels, cells chan AliveCellsCount) {
+	ticker := time.NewTicker(2000 * time.Millisecond)
+	for range ticker.C {
+		c.events <- (<-cells)
+	}
+}
+
 // distributor divides the work between workers and interacts with other goroutines.
 func distributor(p Params, c distributorChannels) {
 
@@ -94,10 +102,14 @@ func distributor(p Params, c distributorChannels) {
 	startX := 0
 	endX := p.ImageWidth
 
-	startY := calcStartY(p)
+	aliveCells := make(chan AliveCellsCount, 1)
+	go liveCellsReport(c, aliveCells)
+	aliveCells <- AliveCellsCount{CellsCount: 0, CompletedTurns: 0}
 
-	for i := 0; i < p.Turns; i++ {
-		immutableWorld := makeImmutableMatrix(world)
+	startY := calcStartY(p)
+	immutableWorld := makeImmutableMatrix(world)
+
+	for i := 1; i < p.Turns+1; i++ {
 
 		channels := make([]chan [][]byte, p.Threads)
 		for i := 0; i < len(channels); i++ {
@@ -120,6 +132,8 @@ func distributor(p Params, c distributorChannels) {
 		}
 
 		world = newWorld
+		immutableWorld = makeImmutableMatrix(world)
+		aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
 
 		c.events <- TurnComplete{
 			CompletedTurns: i,
@@ -172,6 +186,22 @@ func calcAliveCells(world [][]uint8) []util.Cell {
 		}
 	}
 	return cells
+}
+
+func calcAliveCellsCount(p Params, world func(y, x int) uint8, turns int) AliveCellsCount {
+	c := 0
+	for y := 0; y < p.ImageHeight; y++ {
+		for x := 0; x < p.ImageWidth; x++ {
+			if world(y, x) == 255 {
+				c++
+			}
+		}
+	}
+
+	return AliveCellsCount{
+		CellsCount:     c,
+		CompletedTurns: turns,
+	}
 }
 
 func neighbours(p Params, world func(y, x int) uint8, pos []int) int {
