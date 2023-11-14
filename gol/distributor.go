@@ -69,8 +69,119 @@ func liveCellsReport(ticker *time.Ticker, c distributorChannels, cells chan Aliv
 	}
 }
 
+func handleKeyPresses(keyPresses <-chan rune, c distributorChannels, p Params, world func(x, y int) uint8, i int) bool {
+	if len(keyPresses) > 0 {
+		key := <-keyPresses
+		if key == 's' {
+			go writePGM(c, p, world)
+		} else if key == 'q' {
+			writePGM(c, p, world)
+			return false
+		} else if key == 'p' {
+			fmt.Println("Current Turn: ", i)
+			for {
+				key := <-keyPresses
+				if key == 'p' {
+					break
+				}
+			}
+		}
+	}
+	return true
+}
+
+func rowDistribution(p Params, c distributorChannels, keyPresses <-chan rune, immutableWorld func(x, y int) uint8) func(x, y int) uint8 {
+	startX := 0
+	endX := p.ImageWidth
+
+	aliveCells := make(chan AliveCellsCount, 1)
+	done := make(chan bool)
+	ticker := time.NewTicker(2000 * time.Millisecond)
+	go liveCellsReport(ticker, c, aliveCells, done)
+	aliveCells <- AliveCellsCount{CellsCount: 0, CompletedTurns: 0}
+
+	startY := calcStartY(p)
+
+	for i := 1; i < p.Turns+1; i++ {
+		if !handleKeyPresses(keyPresses, c, p, immutableWorld, i) {
+			break
+		}
+		channels := make([]chan [][]byte, p.Threads)
+		for i := 0; i < len(channels); i++ {
+			channels[i] = make(chan [][]byte)
+
+			// step := int(math.Ceil(float64(p.ImageHeight / p.Threads)))
+			// startY := (i * step)
+			// endY := int(math.Min(float64(startY+step), float64(p.ImageHeight)))
+			// fmt.Println(step, startY)
+
+			go worker(c, i, channels[i], p, immutableWorld, startY[i], startY[i+1], startX, endX)
+		}
+
+		var newWorld [][]byte
+		for _, channel := range channels {
+			data := <-channel
+			for _, d := range data {
+				newWorld = append(newWorld, d)
+			}
+		}
+
+		immutableWorld = makeImmutableMatrix(newWorld)
+
+		// Reporting to alive cells report
+		if len(aliveCells) == 0 {
+			aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
+		} else {
+			<-aliveCells
+			aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
+		}
+
+		c.events <- TurnComplete{
+			CompletedTurns: i,
+		}
+	}
+
+	ticker.Stop()
+	done <- true
+
+	return immutableWorld
+}
+
+// func calcCoords(p Params) [][]int {
+// 	cells := p.ImageHeight * p.ImageWidth
+// 	size := cells / p.Threads
+// 	nBigger := cells - (size * p.Threads)
+// 	var coords [][]int
+// 	coords = append(coords, []int{
+// 		0, 0, size % p.ImageWidth, size / p.ImageHeight,
+// 	})
+// 	for i := 1; i < p.Threads; i++ {
+// 		if i >= p.Threads-nBigger {
+// 			coords = append(coords, []int{
+// 				coords[i-1][2], coords[i-1][3], ((i + 1) * size) % p.ImageWidth, ((i + 1) * size) / p.ImageHeight,
+// 			})
+// 		}
+// 	}
+
+// 	return coords
+// }
+
+// func cellDistribution(p Params, c distributorChannels, immutableWorld func(x, y int) uint8) func(x, y int) uint8 {
+
+// }
+
+func writePGM(c distributorChannels, p Params, world func(x, y int) uint8) {
+	c.ioCommand <- ioOutput
+	c.ioFilename <- fmt.Sprint(p.ImageWidth, "x", p.ImageHeight, "x", p.Turns)
+	for y := 0; y < p.ImageHeight; y++ {
+		for x := 0; x < p.ImageWidth; x++ {
+			c.ioOutput <- world(y, x)
+		}
+	}
+}
+
 // distributor divides the work between workers and interacts with other goroutines.
-func distributor(p Params, c distributorChannels) {
+func distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
 
 	// TODO: Create a 2D slice to store the world.
 	var world [][]uint8
@@ -93,65 +204,16 @@ func distributor(p Params, c distributorChannels) {
 		for x := 0; x < p.ImageWidth; x++ {
 			value := <-c.ioInput
 			line = append(line, value)
+			if value == 255 {
+				reportCells(c, 0, []int{x, y})
+			}
 		}
 		world = append(world, line)
 	}
 
 	// TODO: Execute all turns of the Game of Life.
 
-	// for i := 0; i < p.Turns; i++ {
-	// 	world = calculateStep(p, world)
-	// }
-
-	startX := 0
-	endX := p.ImageWidth
-
-	aliveCells := make(chan AliveCellsCount, 1)
-	done := make(chan bool)
-	ticker := time.NewTicker(2000 * time.Millisecond)
-	go liveCellsReport(ticker, c, aliveCells, done)
-	aliveCells <- AliveCellsCount{CellsCount: 0, CompletedTurns: 0}
-
-	startY := calcStartY(p)
-	immutableWorld := makeImmutableMatrix(world)
-
-	for i := 1; i < p.Turns+1; i++ {
-
-		channels := make([]chan [][]byte, p.Threads)
-		for i := 0; i < len(channels); i++ {
-			channels[i] = make(chan [][]byte)
-
-			// step := int(math.Ceil(float64(p.ImageHeight / p.Threads)))
-			// startY := (i * step)
-			// endY := int(math.Min(float64(startY+step), float64(p.ImageHeight)))
-			// fmt.Println(step, startY)
-
-			go worker(channels[i], p, immutableWorld, startY[i], startY[i+1], startX, endX)
-		}
-
-		var newWorld [][]byte
-		for _, channel := range channels {
-			data := <-channel
-			for _, d := range data {
-				newWorld = append(newWorld, d)
-			}
-		}
-
-		world = newWorld
-		immutableWorld = makeImmutableMatrix(world)
-		if len(aliveCells) == 0 {
-			aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
-		} else {
-			<-aliveCells
-			aliveCells <- calcAliveCellsCount(p, immutableWorld, i)
-		}
-
-		c.events <- TurnComplete{
-			CompletedTurns: i,
-		}
-	}
-
-	// fmt.Println("All done")
+	immutableWorld := rowDistribution(p, c, keyPresses, makeImmutableMatrix(world))
 
 	// TODO: Report the final state using FinalTurnCompleteEvent.
 
@@ -160,13 +222,7 @@ func distributor(p Params, c distributorChannels) {
 		Alive:          calcAliveCells(world),
 	}
 
-	c.ioCommand <- ioOutput
-	c.ioFilename <- fmt.Sprint(p.ImageWidth, "x", p.ImageHeight, "x", p.Turns)
-	for y := 0; y < p.ImageHeight; y++ {
-		for x := 0; x < p.ImageWidth; x++ {
-			c.ioOutput <- immutableWorld(y, x)
-		}
-	}
+	writePGM(c, p, immutableWorld)
 
 	// Make sure that the Io has finished any output before exiting.
 	c.ioCommand <- ioCheckIdle
@@ -175,18 +231,28 @@ func distributor(p Params, c distributorChannels) {
 	c.events <- StateChange{turn, Quitting}
 
 	// Close the channel to stop the SDL goroutine gracefully. Removing may cause deadlock.
-	ticker.Stop()
-	done <- true
 	close(c.events)
 }
 
-func worker(channel chan [][]byte, p Params, world func(y, x int) uint8, startY int, endY int, startX int, endX int) {
+func reportCells(c distributorChannels, turns int, pos []int) {
+	c.events <- CellFlipped{
+		CompletedTurns: turns,
+		Cell:           util.Cell{X: pos[0], Y: pos[1]},
+	}
+}
+
+func worker(c distributorChannels, turns int, channel chan [][]byte, p Params, world func(y, x int) uint8, startY int, endY int, startX int, endX int) {
 	var newWorld [][]byte
 	for y := startY; y < endY; y++ {
 		var newLine []byte
 		for x := startX; x < endX; x++ {
 			n := neighbours(p, world, []int{x, y})
-			newLine = append(newLine, golLogic(world(y, x), n))
+			cell := world(y, x)
+			newCell := golLogic(cell, n)
+			if cell != newCell {
+				reportCells(c, turns, []int{x, y})
+			}
+			newLine = append(newLine, newCell)
 		}
 		newWorld = append(newWorld, newLine)
 	}
