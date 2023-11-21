@@ -4,28 +4,10 @@ import (
 	"flag"
 	"fmt"
 	"net/rpc"
-	"sync"
 	"time"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
-
-type GolCommands struct {
-	params Params
-	world  [][]uint8
-	mu     sync.Mutex
-	turn   int
-}
-
-type SingleThreadGolRequest struct {
-	Params Params
-	World  [][]uint8
-}
-
-type SingleThreadGolResponse struct {
-	World [][]uint8
-	Turns int
-}
 
 type distributorChannels struct {
 	events     chan<- Event
@@ -37,24 +19,31 @@ type distributorChannels struct {
 }
 
 func makeCall(client *rpc.Client, params Params, world [][]uint8) [][]uint8 {
+	fmt.Println(params)
 	request := SingleThreadGolRequest{
 		Params: params,
 		World:  world,
 	}
 	response := new(SingleThreadGolResponse)
 	client.Call("GolCommands.SingleThreadGOL", request, response)
-	fmt.Println(response.World)
+	// fmt.Println(response.World)
 
 	return response.World
 }
 
-func liveCellsReport(ticker *time.Ticker, c distributorChannels, cells chan AliveCellsCount, done chan bool) {
+func liveCellsReport(client *rpc.Client, ticker *time.Ticker, c distributorChannels, done chan bool) {
 	for {
 		select {
 		case <-done:
 			return
 		case <-ticker.C:
-			c.events <- (<-cells)
+			request := AliveCellsCountRequest{}
+			response := new(AliveCellsCountResponse)
+			client.Call("GolCommands.AliveCellsCount", request, response)
+			c.events <- AliveCellsCount{
+				CompletedTurns: response.Turn,
+				CellsCount:     response.Count,
+			}
 		}
 	}
 }
@@ -123,12 +112,19 @@ func distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
 
 	// TODO: Execute all turns of the Game of Life.
 
+	// server := "23.22.135.15:8030"
 	server := "127.0.0.1:8030"
 	flag.Parse()
 	client, _ := rpc.Dial("tcp", server)
 	defer client.Close()
 
+	done := make(chan bool)
+	ticker := time.NewTicker(2000 * time.Millisecond)
+
+	go liveCellsReport(client, ticker, c, done)
+
 	world = makeCall(client, p, world)
+
 	immutableWorld := makeImmutableMatrix(world)
 
 	// TODO: Report the final state using FinalTurnCompleteEvent.

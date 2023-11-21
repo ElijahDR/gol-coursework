@@ -16,6 +16,8 @@ func makeImmutableMatrix(matrix [][]uint8) func(y, x int) uint8 {
 func updateWorld(g *GolCommands, newWorld [][]uint8) {
 	g.mu.Lock()
 	g.world = newWorld
+	g.alive = calcAliveCells(newWorld)
+	g.turn = g.turn + 1
 	g.mu.Unlock()
 }
 
@@ -25,15 +27,41 @@ func getWorld(g *GolCommands) [][]uint8 {
 	return g.world
 }
 
+func calcAliveCells(world [][]uint8) int {
+	c := 0
+	for _, line := range world {
+		for _, cell := range line {
+			if cell == 255 {
+				c++
+			}
+		}
+	}
+	return c
+}
+
 func (g *GolCommands) SingleThreadGOL(req SingleThreadGolRequest, res *SingleThreadGolResponse) (err error) {
-	fmt.Println("Started SingleThreadGOL")
+	fmt.Println("Started SingleThreadGOL", req.Params)
 	g.params = req.Params
 	updateWorld(g, req.World)
-	newWorld := rowDistribution(g.params, g.world)
-	updateWorld(g, newWorld)
+	worldChan := make(chan [][]uint8)
+	go distributor(worldChan, g.params, getWorld(g))
+	g.turn = 0
+	for i := 0; i < req.Params.Turns; i++ {
+		updateWorld(g, <-worldChan)
+	}
 
 	res.World = getWorld(g)
 	res.Turns = g.turn
+
+	fmt.Println("Finished SingleThreadGOL", req.Params)
+	return
+}
+
+func (g *GolCommands) AliveCellsCount(req AliveCellsCountRequest, res *AliveCellsCountResponse) (err error) {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	res.Count = g.alive
+	res.Turn = g.turn
 	return
 }
 
@@ -116,14 +144,20 @@ func worker(turns int, channel chan [][]byte, p Params, world func(y, x int) uin
 	channel <- newWorld
 }
 
-func rowDistribution(p Params, world [][]uint8) [][]uint8 {
+func distributor(worldChan chan [][]uint8, p Params, world [][]uint8) {
+	rowDistribution(worldChan, p, world)
+	return
+}
+
+func rowDistribution(worldChan chan [][]uint8, p Params, world [][]uint8) [][]uint8 {
 	startX := 0
 	endX := p.ImageWidth
 	// go liveCellsReport(ticker, c, aliveCells, done)
 
 	startY := calcStartY(p)
+	fmt.Println(p.Turns)
 
-	for i := 1; i < p.Turns+1; i++ {
+	for t := 1; t < p.Turns+1; t++ {
 		immutableWorld := makeImmutableMatrix(world)
 		channels := make([]chan [][]byte, p.Threads)
 		for i := 0; i < len(channels); i++ {
@@ -145,8 +179,9 @@ func rowDistribution(p Params, world [][]uint8) [][]uint8 {
 			}
 		}
 
+		worldChan <- newWorld
 		world = newWorld
-		fmt.Println("Completed turns:", i)
+		// fmt.Println("Completed turns:", t)
 	}
 
 	return world

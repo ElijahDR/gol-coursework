@@ -1,13 +1,6 @@
-package main
+package gol
 
 import "sync"
-
-type Params struct {
-	Turns       int
-	Threads     int
-	ImageWidth  int
-	ImageHeight int
-}
 
 type GolCommands struct {
 	params Params
@@ -15,7 +8,6 @@ type GolCommands struct {
 	mu     sync.Mutex
 	turn   int
 	alive  int
-	key    rune
 }
 
 type SingleThreadGolRequest struct {
@@ -38,7 +30,4 @@ type AliveCellsCountResponse struct {
 
 type KeyPressRequest struct {
 	Key rune
-}
-
-type KeyPressResponse struct {
 }
