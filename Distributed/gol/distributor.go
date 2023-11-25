@@ -48,33 +48,47 @@ func liveCellsReport(client *rpc.Client, ticker *time.Ticker, c distributorChann
 	}
 }
 
-func handleKeyPresses(keyPresses <-chan rune, c distributorChannels, p Params, world func(x, y int) uint8, i int) bool {
-	if len(keyPresses) > 0 {
+func sendKeyRequest(client *rpc.Client, key rune) *KeyPressResponse {
+	request := KeyPressRequest{Key: key}
+	response := new(KeyPressResponse)
+	client.Call("GolCommands.KeyPress", request, response)
+	return response
+}
+
+func handleKeyPresses(client *rpc.Client, keyPresses <-chan rune, c distributorChannels) {
+	for {
 		key := <-keyPresses
+		fmt.Println("Key Pressed:", string(key))
+		// request := KeyPressRequest{Key: key}
+		// response := new(KeyPressResponse)
+		// client.Call("GolCommands.KeyPress", request, response)
+		response := sendKeyRequest(client, key)
 		if key == 's' {
-			go writePGM(c, p, world)
+			writePGM(c, response.World)
 		} else if key == 'q' {
-			writePGM(c, p, world)
-			return false
+			fmt.Println("Q PRESSED")
+		} else if key == 'k' {
+			writePGM(c, response.World)
 		} else if key == 'p' {
-			fmt.Println("Current Turn: ", i)
+			fmt.Println("Current Turn:", response.Turn+1)
 			for {
 				key := <-keyPresses
 				if key == 'p' {
+					sendKeyRequest(client, key)
+					fmt.Println("Continuing...")
 					break
 				}
 			}
 		}
 	}
-	return true
 }
 
-func writePGM(c distributorChannels, p Params, world func(x, y int) uint8) {
+func writePGM(c distributorChannels, world [][]uint8) {
 	c.ioCommand <- ioOutput
-	c.ioFilename <- fmt.Sprint(p.ImageWidth, "x", p.ImageHeight, "x", p.Turns)
-	for y := 0; y < p.ImageHeight; y++ {
-		for x := 0; x < p.ImageWidth; x++ {
-			c.ioOutput <- world(y, x)
+	c.ioFilename <- fmt.Sprint(len(world[0]), "x", len(world), "x")
+	for _, line := range world {
+		for _, cell := range line {
+			c.ioOutput <- cell
 		}
 	}
 }
@@ -122,6 +136,7 @@ func distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
 	ticker := time.NewTicker(2000 * time.Millisecond)
 
 	go liveCellsReport(client, ticker, c, done)
+	go handleKeyPresses(client, keyPresses, c)
 
 	world = makeCall(client, p, world)
 
@@ -141,6 +156,9 @@ func distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
 	<-c.ioIdle
 
 	c.events <- StateChange{turn, Quitting}
+
+	ticker.Stop()
+	done <- true
 
 	// Close the channel to stop the SDL goroutine gracefully. Removing may cause deadlock.
 	close(c.events)

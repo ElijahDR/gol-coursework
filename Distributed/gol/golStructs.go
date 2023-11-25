@@ -31,3 +31,18 @@ type AliveCellsCountResponse struct {
 type KeyPressRequest struct {
 	Key rune
 }
+
+type KeyPressResponse struct {
+	Turn  int
+	World [][]uint8
+}
+
+type GolBrokerResponse struct {
+	Turn  int
+	World [][]uint8
+}
+
+type GolBrokerRequest struct {
+	Params Params
+	World  [][]uint8
+}

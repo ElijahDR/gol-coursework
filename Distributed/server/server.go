@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math"
 	"net"
 	"net/rpc"
 )
@@ -39,19 +40,50 @@ func calcAliveCells(world [][]uint8) int {
 	return c
 }
 
+func worldUpdater(g *GolCommands, worldChan chan [][]uint8, done chan bool) {
+	for {
+		select {
+		case <-done:
+			break
+		case world := <-worldChan:
+			updateWorld(g, world)
+		default:
+		}
+	}
+}
+
 func (g *GolCommands) SingleThreadGOL(req SingleThreadGolRequest, res *SingleThreadGolResponse) (err error) {
 	fmt.Println("Started SingleThreadGOL", req.Params)
 	g.params = req.Params
+	// g.keyPresses = make(chan rune)
 	updateWorld(g, req.World)
-	worldChan := make(chan [][]uint8)
-	go distributor(worldChan, g.params, getWorld(g))
 	g.turn = 0
-	for i := 0; i < req.Params.Turns; i++ {
-		updateWorld(g, <-worldChan)
+	worldChan := make(chan [][]uint8)
+	// defer close(worldChan)
+	stopDistributer := make(chan int)
+	stopUpdater := make(chan bool)
+
+	initial := getWorld(g)
+	go distributor(worldChan, g.params, initial, g.keyPresses, stopDistributer)
+	go worldUpdater(g, worldChan, stopUpdater)
+
+	distributerCode := <-stopDistributer
+	// fmt.Println("FLag")
+	if distributerCode == -1 {
+		defer g.finish()
 	}
+
+	stopUpdater <- true
+
+	// fmt.Println("FLag")
 
 	res.World = getWorld(g)
 	res.Turns = g.turn
+
+	defer close(stopDistributer)
+	defer close(stopUpdater)
+	defer close(worldChan)
+	// worldChan = nil
 
 	fmt.Println("Finished SingleThreadGOL", req.Params)
 	return
@@ -62,6 +94,22 @@ func (g *GolCommands) AliveCellsCount(req AliveCellsCountRequest, res *AliveCell
 	defer g.mu.Unlock()
 	res.Count = g.alive
 	res.Turn = g.turn
+	return
+}
+
+func (g *GolCommands) finish() {
+	g.finished <- true
+}
+
+func (g *GolCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (err error) {
+	g.keyPresses <- req.Key
+	// for {
+	// 	if len(g.keyPresses) == 0 {
+	// 		break
+	// 	}
+	// }
+	res.Turn = g.turn
+	res.World = getWorld(g)
 	return
 }
 
@@ -128,7 +176,7 @@ func golLogic(current byte, nCount int) byte {
 	}
 }
 
-func worker(turns int, channel chan [][]byte, p Params, world func(y, x int) uint8, startY int, endY int, startX int, endX int) {
+func worker(id int, channel chan [][]byte, p Params, world func(y, x int) uint8, startY int, endY int, startX int, endX int) {
 	var newWorld [][]byte
 	for y := startY; y < endY; y++ {
 		var newLine []byte
@@ -142,56 +190,217 @@ func worker(turns int, channel chan [][]byte, p Params, world func(y, x int) uin
 	}
 
 	channel <- newWorld
+	// fmt.Println("Worker", id, "done")
 }
 
-func distributor(worldChan chan [][]uint8, p Params, world [][]uint8) {
-	rowDistribution(worldChan, p, world)
-	return
+func worker1D(id int, channel chan []byte, p Params, world func(y, x int) uint8, start int, end int) {
+	var newWorld []byte
+	for i := start; i < end; i++ {
+		coord := convert1Dto2D(i, p)
+		n := neighbours(p, world, []int{coord[0], coord[1]})
+		cell := world(coord[1], coord[0])
+		newCell := golLogic(cell, n)
+		// if len(newLine) < p.ImageWidth {
+		// 	newLine = append(newLine, newCell)
+		// } else {
+		// 	newWorld = append(newWorld, newLine)
+		// 	newLine = []byte{}
+		// }
+		newWorld = append(newWorld, newCell)
+	}
+
+	channel <- newWorld
 }
 
-func rowDistribution(worldChan chan [][]uint8, p Params, world [][]uint8) [][]uint8 {
-	startX := 0
-	endX := p.ImageWidth
-	// go liveCellsReport(ticker, c, aliveCells, done)
+func worker1Dv2(id int, channel chan []byte, p Params, world func(y, x int) uint8, start int, end int) {
+	var newWorld []byte
+	startCoord := convert1Dto2D(start, p)
+	endCoord := convert1Dto2D(end, p)
+	for y := startCoord[1]; y < endCoord[1]; y++ {
+		for x := 0; x < p.ImageWidth; x++ {
+			if y == startCoord[1] && x < startCoord[0]-1 {
+				x = startCoord[0] - 1
+				continue
+			} else if y == endCoord[1] {
+				if x >= endCoord[0] {
+					break
+				}
+			}
 
-	startY := calcStartY(p)
-	fmt.Println(p.Turns)
+			n := neighbours(p, world, []int{x, y})
+			cell := world(y, x)
+			newCell := golLogic(cell, n)
+			newWorld = append(newWorld, newCell)
+		}
+	}
 
-	for t := 1; t < p.Turns+1; t++ {
-		immutableWorld := makeImmutableMatrix(world)
+	// fmt.Println("Flag")
+	channel <- newWorld
+
+	// fmt.Println("worker", id, "done")
+}
+
+func handleKeyPresses(keyPresses chan rune) int {
+	if len(keyPresses) > 0 {
+		key := <-keyPresses
+		if key == 'q' {
+			return 0
+		} else if key == 'p' {
+			for {
+				key := <-keyPresses
+				if key == 'p' {
+					break
+				}
+			}
+		} else if key == 'k' {
+			return -1
+		}
+	}
+	return 1
+}
+
+func distributor(worldChan chan [][]uint8, p Params, world [][]uint8, keyPresses chan rune, done chan int) {
+	distribution := "row"
+
+	if distribution == "row" {
 		channels := make([]chan [][]byte, p.Threads)
 		for i := 0; i < len(channels); i++ {
 			channels[i] = make(chan [][]byte)
-
-			// step := int(math.Ceil(float64(p.ImageHeight / p.Threads)))
-			// startY := (i * step)
-			// endY := int(math.Min(float64(startY+step), float64(p.ImageHeight)))
-			// fmt.Println(step, startY)
-
-			go worker(i, channels[i], p, immutableWorld, startY[i], startY[i+1], startX, endX)
 		}
-
-		var newWorld [][]byte
-		for _, channel := range channels {
-			data := <-channel
-			for _, d := range data {
-				newWorld = append(newWorld, d)
+		startY := calcStartY(p)
+		for i := 0; i < p.Turns; i++ {
+			handleKey := handleKeyPresses(keyPresses)
+			if handleKey == 0 {
+				break
+			} else if handleKey == -1 {
+				done <- -1
+				break
 			}
+			newWorld := rowDistribution(channels, p, world, startY)
+			worldChan <- newWorld
+			world = newWorld
+			// fmt.Println("Completed", i, "turn")
 		}
 
-		worldChan <- newWorld
-		world = newWorld
-		// fmt.Println("Completed turns:", t)
+		for _, c := range channels {
+			close(c)
+		}
+	} else if distribution == "cell" {
+		channels := make([]chan []byte, p.Threads)
+		for i := 0; i < len(channels); i++ {
+			channels[i] = make(chan []byte)
+		}
+		coords := calcCoords(p)
+		for i := 0; i < p.Turns; i++ {
+			handleKey := handleKeyPresses(keyPresses)
+			if handleKey == 0 {
+				break
+			} else if handleKey == -1 {
+				done <- -1
+				break
+			}
+			newWorld := cellDistribution(channels, p, world, coords)
+			// fmt.Println("Completed", i, "turn")
+			worldChan <- newWorld
+			world = newWorld
+		}
+
+		for _, c := range channels {
+			close(c)
+		}
 	}
 
-	return world
+	// fmt.Println("Distributor Function Finished")
+	done <- 1
+}
+
+func convert1Dto2D(index int, p Params) []int {
+	return []int{index % p.ImageWidth, index / p.ImageWidth}
+}
+
+func calcCoords(p Params) [][]int {
+	totalCells := int(float64(p.ImageHeight) * float64(p.ImageWidth))
+	cellsPerWorker := int(math.Floor(float64(totalCells) / float64(p.Threads)))
+	plusOnes := totalCells - cellsPerWorker*p.Threads
+	var nCells []int
+	for i := 0; i < p.Threads; i++ {
+		if i+1 > p.Threads-plusOnes {
+			nCells = append(nCells, cellsPerWorker+1)
+		} else {
+			nCells = append(nCells, cellsPerWorker)
+		}
+	}
+
+	// fmt.Println("Cells:", totalCells, "Threads:", p.Threads, "Extra:", plusOnes, "Cells Distribution:", nCells)
+
+	var coords [][]int
+	current := 0
+	for i := 0; i < p.Threads; i++ {
+		start := current
+		end := start + nCells[i]
+		// coords = append(coords, append(convert1Dto2D(start, p), convert1Dto2D(end, p)...))
+		coords = append(coords, []int{start, end})
+		current = end
+	}
+
+	// fmt.Println(coords)
+	return coords
+}
+
+func rowDistribution(channels []chan [][]byte, p Params, world [][]uint8, startY []int) [][]uint8 {
+	immutableWorld := makeImmutableMatrix(world)
+	for i := 0; i < len(channels); i++ {
+
+		go worker(i, channels[i], p, immutableWorld, startY[i], startY[i+1], 0, p.ImageWidth)
+	}
+
+	var newWorld [][]byte
+	for _, channel := range channels {
+		data := <-channel
+		for _, d := range data {
+			newWorld = append(newWorld, d)
+		}
+	}
+
+	// fmt.Println("RowDistribution Function finished")
+
+	return newWorld
+}
+
+func cellDistribution(channels []chan []byte, p Params, world [][]uint8, coords [][]int) [][]uint8 {
+	immutableWorld := makeImmutableMatrix(world)
+	// channels := make([]chan []byte, p.Threads)
+	for i := 0; i < len(channels); i++ {
+		// channels[i] = make(chan []byte)
+		go worker1Dv2(i, channels[i], p, immutableWorld, coords[i][0], coords[i][1])
+	}
+
+	var allData []byte
+	for _, channel := range channels {
+		data := <-channel
+		for _, d := range data {
+			allData = append(allData, d)
+		}
+	}
+
+	var newWorld [][]byte
+	for i := 0; i < p.ImageHeight; i++ {
+		newWorld = append(newWorld, allData[i*p.ImageWidth:(i+1)*p.ImageWidth])
+	}
+
+	// fmt.Println("RowDistribution Function finished")
+
+	return newWorld
 }
 
 func main() {
 	pAddr := flag.String("port", "8030", "Port to listen on")
 	flag.Parse()
-	rpc.Register(&GolCommands{})
+	finishedChan := make(chan bool)
+	keyPresses := make(chan rune, 1)
+	rpc.Register(&GolCommands{finished: finishedChan, keyPresses: keyPresses})
 	listener, _ := net.Listen("tcp", ":"+*pAddr)
 	defer listener.Close()
-	rpc.Accept(listener)
+	go rpc.Accept(listener)
+	<-finishedChan
 }
