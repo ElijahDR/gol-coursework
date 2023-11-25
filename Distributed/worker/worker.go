@@ -29,39 +29,39 @@ func worker(slice [][]uint16, c chan [][]uint16) {
 			var newuint16 uint16
 
 			if x == 0 {
-				var area []byte
+				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
 					// Get the last bit of the furthest right uint16 and the first 2 of the first uint16
-					area[j] = (byte(slice[y+j][nuint16-1]&1) << 2) | byte(slice[y+j][0]>>14)
+					area[j+1] = (byte(slice[y+j][nuint16-1]&1) << 2) | byte(slice[y+j][0]>>14)
 				}
 				newuint16 = uint16(golLogic(area))
 			} else {
-				var area []byte
+				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
-					area[j] = byte(slice[y+j][x-1]&1)<<2 | byte(slice[y+j][x])>>uint8(14)
+					area[j+1] = byte(slice[y+j][x-1]&1)<<2 | byte(slice[y+j][x])>>uint8(14)
 				}
 				newuint16 = uint16(golLogic(area))
 			}
 
 			for i := 1; i < 15; i++ {
-				var area []byte
+				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
-					area[j] = byte(slice[y+j][x]>>uint8(14-i)) & uint8(111)
+					area[j+1] = byte(slice[y+j][x]>>uint8(14-i)) & uint8(111)
 				}
 				newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
 			}
 
 			if x == nuint16-1 {
-				var area []byte
+				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
 					// Get the first bit of the leftmost uint16 and the last two of the rightmost uint16
-					area[j] = byte(slice[y+j][nuint16-1]&11)<<1 | byte(slice[y+j][0]>>15)
+					area[j+1] = byte(slice[y+j][nuint16-1]&11)<<1 | byte(slice[y+j][0]>>15)
 				}
 				newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
 			} else {
-				var area []byte
+				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
-					area[j] = byte(slice[y+j][x])&11 | byte(slice[y+j][x+1])>>15
+					area[j+1] = byte(slice[y+j][x])&11 | byte(slice[y+j][x+1])>>15
 				}
 				newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
 			}

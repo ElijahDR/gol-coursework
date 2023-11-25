@@ -55,10 +55,14 @@ func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 	var slices [][][]uint16
 	for i := 0; i < n; i++ {
 		var slice [][]uint16
-		if i == 0 {
+		if i == 0 && i == n-1 {
+			slice = append(slice, world[p.ImageHeight-1])
+			slice = append(slice, world[start:start+rows[i]]...)
+			slice = append(slice, world[0])
+		} else if i == 0 {
 			slice = append(slice, world[p.ImageHeight-1])
 			slice = append(slice, world[start:start+rows[i]+1]...)
-		} else if i == n {
+		} else if i == n-1 {
 			slice = append(slice, world[start:p.ImageHeight-1]...)
 			slice = append(slice, world[0])
 		} else {
@@ -71,7 +75,8 @@ func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 }
 
 func callWorker(id int, slice [][]uint16, p Params, channel chan [][]uint16) {
-	server := NODES[id]
+	server := NODES[id] + ":8030"
+	fmt.Println("Sending request to", server, "id", id)
 	flag.Parse()
 	client, _ := rpc.Dial("tcp", server)
 	defer client.Close()
@@ -112,7 +117,7 @@ func convertToUint16(world [][]uint8) [][]uint16 {
 		var byteLine []uint16
 		for i := 0; i < len(line); i += 16 {
 			b := uint16(0)
-			for j := 16; j >= 0; j-- {
+			for j := 15; j >= 0; j-- {
 				b = (b) | uint16(line[i+j]<<uint8(j))
 			}
 			byteLine = append(byteLine, b)
@@ -152,6 +157,7 @@ func calcRows(p Params, n int) []int {
 		rows = append(rows, rowsEach+1)
 	}
 
+	fmt.Println(rows)
 	return rows
 }
 
