@@ -40,6 +40,6 @@ func Run(p Params, events chan<- Event, keyPresses <-chan rune) {
 		ioInput:    ioInput,
 	}
 	// distributor(p, distributorChannels, keyPresses)
-	handler(p, distributorChannels, keyPresses)
-	broker_distributor(p, distributorChannels, keyPresses)
+	server_distribution(p, distributorChannels, keyPresses)
+	// handler(p, distributorChannels, keyPresses)
 }

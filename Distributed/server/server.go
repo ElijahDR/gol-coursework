@@ -69,7 +69,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 }
 
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {
-	destIP := NODES[id]
+	destIP := NODES[id] + ":8030"
 
 	client, _ := rpc.Dial("tcp", destIP)
 	defer client.Close()
@@ -165,7 +165,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	bottomID := (s.id - 1) + (len(NODES))%(len(NODES))
 	topID := (s.id + 1) % len(NODES)
 
-	client, _ := rpc.Dial("tcp", NODES[bottomID])
+	client, _ := rpc.Dial("tcp", NODES[bottomID]+":8030")
 	defer client.Close()
 	request := HaloRegionReq{
 		Region:      region.regions[0],
@@ -175,7 +175,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	response := new(HaloRegionRes)
 	client.Call("ServerCommands.ReceiveHaloRegions", request, response)
 
-	client, _ = rpc.Dial("tcp", NODES[topID])
+	client, _ = rpc.Dial("tcp", NODES[topID]+":8030")
 	defer client.Close()
 	request = HaloRegionReq{
 		Region:      region.regions[1],
@@ -223,7 +223,7 @@ func (s *ServerCommands) CheckAlive(req CheckAliveReq, res CheckAliveRes) (err e
 
 func checkAlive(myID int, checkID int) {
 	destIP := NODES[checkID]
-	client, error := rpc.Dial("tcp", destIP)
+	client, error := rpc.Dial("tcp", destIP+":8030")
 	if error != nil {
 		fmt.Println("Error connecting to", destIP)
 		fmt.Println("Adding to blacklist...")

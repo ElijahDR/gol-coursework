@@ -23,7 +23,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 		Turns: p.Turns,
 	}
 	response := new(GolResponse)
-	client.Call("GolCommands.RunGOL", request, response)
+	client.Call("ServerCommands.RunGOL", request, response)
 
 	world = response.World
 
