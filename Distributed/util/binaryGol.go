@@ -145,7 +145,7 @@ func GolLogic(area []byte) byte {
 	}
 }
 
-func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int) {
+func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int, receiveHaloChannel chan [][]uint16) {
 	var data [][]uint16
 	sliceSize := len(slice)
 
@@ -163,7 +163,7 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 			break
 		default:
 			if i > 0 {
-				newRegions := <-dataChannel
+				newRegions := <-receiveHaloChannel
 				slice = append([][]uint16{newRegions[0]}, slice...)
 				slice = append(slice, newRegions[1])
 			}

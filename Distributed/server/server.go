@@ -116,10 +116,11 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannels := make(map[string]chan int)
 	sendHaloChannel := make(chan haloRegion, 100)
+	receiveHaloChannel := make(chan [][]uint16, 10)
 	s.haloRegions = make(map[int][][]uint16)
 
 	stopChannels["simulator"] = make(chan int)
-	go util.SimulateSlice(s.slice, dataChannel, stopChannels["simulator"], turns)
+	go util.SimulateSlice(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
 
 	stopChannels["sliceUpdater"] = make(chan int)
 	go sliceUpdater(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
@@ -128,7 +129,7 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	go sendHaloRegions(s, sendHaloChannel, stopChannels["sendHaloRegions"])
 
 	stopChannels["receiveHaloRegions"] = make(chan int)
-	go receiveHaloRegions(s, dataChannel, stopChannels["receiveHaloRegions"])
+	go receiveHaloRegions(s, receiveHaloChannel, stopChannels["receiveHaloRegions"])
 
 	fmt.Println("Waiting for finish...")
 	<-stopChannels["simulator"]
@@ -137,26 +138,28 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	return s.slice
 }
 
-func receiveHaloRegions(s *ServerCommands, dataChannel chan [][]uint16, stopChannel chan int) {
+func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, stopChannel chan int) {
+	haloTurn := s.currentTurn
 	for {
 		select {
 		case <-stopChannel:
 			break
 		default:
-			if len(s.haloRegions[s.currentTurn]) == 2 {
-				dataChannel <- s.haloRegions[s.currentTurn]
+			if len(s.haloRegions[haloTurn]) == 2 {
+				receiveHaloChannel <- s.haloRegions[s.currentTurn]
 				s.haloLock.Lock()
-				delete(s.haloRegions, s.currentTurn)
+				delete(s.haloRegions, haloTurn)
 				s.haloLock.Unlock()
 			}
+			haloTurn++
 		}
 	}
 }
 
 func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType int) {
-	fmt.Println("Waiting to unlock halo lock...")
+	// fmt.Println("Waiting to unlock halo lock...")
 	s.haloLock.Lock()
-	fmt.Println("Unlocked!")
+	// fmt.Println("Unlocked!")
 	_, exists := s.haloRegions[turn]
 	if exists {
 		if haloType == 0 {
