@@ -180,7 +180,7 @@ func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRe
 }
 
 func makeHaloExchange(s *ServerCommands, region haloRegion) {
-	bottomID := (s.id - 1) + (len(NODES))%(len(NODES))
+	bottomID := ((s.id - 1) + (len(NODES))) % (len(NODES))
 	topID := (s.id + 1) % len(NODES)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "and", topID)
