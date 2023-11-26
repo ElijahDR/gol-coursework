@@ -41,7 +41,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	}
 
 	fmt.Println("Server Received Request:", width, "x", height, "for", req.Turns, "turns")
-	if height < 64 && width < 64 {
+	if height < 512 && width < 512 {
 		res.World = masterNormal(s, world, turns)
 	} else {
 		res.World = masterHaloExchange(s, world, turns)
@@ -106,7 +106,7 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 
 func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
 	destIP := NODES[id] + ":8030"
-	fmt.Println("Asking", destIP, "to partake in Halo Exchange")
+	fmt.Println("Asking", destIP, "to iterate slice")
 
 	client, err := rpc.Dial("tcp", destIP)
 	if err != nil {
