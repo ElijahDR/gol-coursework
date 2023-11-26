@@ -71,6 +71,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {
 	destIP := NODES[id] + ":8030"
+	fmt.Println("Asking", destIP, "to partake in Halo Exchange")
 
 	client, _ := rpc.Dial("tcp", destIP)
 	defer client.Close()
