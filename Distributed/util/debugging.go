@@ -69,3 +69,37 @@ func CompareWorlds(w1 [][]uint8, w2 [][]uint16) bool {
 	fmt.Println(str1 == str2)
 	return str1 == str2
 }
+
+func CompareLines(l1 []uint8, l2 []uint16) bool {
+	var s1 string
+	var s2 string
+
+	for _, cell := range l1 {
+		if cell == 255 {
+			// fmt.Print(1)
+			s1 += "1"
+		} else {
+			// fmt.Print(0)
+			s1 += "0"
+		}
+	}
+	// fmt.Println()
+
+	for _, u := range l2 {
+		// fmt.Printf("%016b", u)
+		s2 += fmt.Sprintf("%016b", u)
+	}
+	// fmt.Print("\n")
+
+	fmt.Println(s1)
+	fmt.Println(s2)
+	fmt.Println(s1 == s2)
+	return s1 == s2
+}
+
+func PrintByteLine(line []uint16) {
+	for _, u := range line {
+		fmt.Printf("%016b", u)
+	}
+	fmt.Print("\n")
+}

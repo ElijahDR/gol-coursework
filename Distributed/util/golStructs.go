@@ -1,10 +1,6 @@
-package main
+package util
 
-import (
-	"sync"
-
-	"uk.ac.bris.cs/gameoflife/util"
-)
+import "sync"
 
 type Params struct {
 	Turns       int
@@ -14,13 +10,13 @@ type Params struct {
 }
 
 type GolCommands struct {
-	params     Params
-	world      [][]uint8
-	mu         sync.Mutex
-	turn       int
-	alive      int
-	keyPresses chan rune
-	finished   chan bool
+	Params     Params
+	World      [][]uint8
+	MU         sync.Mutex
+	Turn       int
+	Alive      int
+	KeyPresses chan rune
+	Finished   chan bool
 }
 
 type SingleThreadGolRequest struct {
@@ -48,23 +44,4 @@ type KeyPressRequest struct {
 type KeyPressResponse struct {
 	Turn  int
 	World [][]uint8
-}
-
-type GolBrokerResponse struct {
-	Turn  int
-	World [][]uint8
-}
-
-type GolBrokerRequest struct {
-	Params util.Params
-	World  [][]uint8
-}
-
-type GolWorkerRequest struct {
-	ID    int
-	Slice [][]uint16
-}
-
-type GolWorkerResponse struct {
-	Slice [][]uint16
 }

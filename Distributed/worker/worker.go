@@ -2,61 +2,46 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"math"
 	"math/bits"
 	"net"
 	"net/rpc"
 )
 
+var PARALLEL = true
+
 func (g *GolCommands) GOLWorker(req GolWorkerRequest, res *GolWorkerResponse) (err error) {
-	// fmt.Println("Worker", req.ID, "received slice")
-
-	// area := []byte{
-	// 	byte(7),
-	// 	byte(0),
-	// 	byte(0),
-	// }
-	// fmt.Println(golLogic(area))
-	// area = []byte{
-	// 	byte(6),
-	// 	byte(2),
-	// 	byte(0),
-	// }
-	// fmt.Println(golLogic(area))
-	// area = []byte{
-	// 	byte(1),
-	// 	byte(2),
-	// 	byte(0),
-	// }
-	// fmt.Println(golLogic(area))
-
 	slice := req.Slice
-	// fmt.Println("Slice:", slice)
 
-	// nThreads := 8
-	// startingY := calcThreads(len(slice)-2, nThreads)
+	var data [][]uint16
 
-	// channels := make([]chan [][]uint16, nThreads)
-	// for i := 0; i < len(channels); i++ {
-	// 	channels[i] = make(chan [][]uint16, 2)
-	// }
+	if PARALLEL {
+		nThreads := int(math.Min(float64(len(slice)), 8))
+		fmt.Println(nThreads)
+		startingY := calcThreads(len(slice)-2, nThreads)
 
-	// current := 1
-	// for i := 0; i < len(channels); i++ {
-	// 	go parallelWorker(current, current+startingY[i], slice, channels[i])
-	// 	current += startingY[i]
-	// }
+		channels := make([]chan [][]uint16, nThreads)
+		for i := 0; i < len(channels); i++ {
+			channels[i] = make(chan [][]uint16, 2)
+		}
 
-	// var data [][]uint16
-	// for i := 0; i < len(channels); i++ {
-	// 	d := <-channels[i]
-	// 	data = append(data, d...)
-	// }
+		current := 1
+		for i := 0; i < len(channels); i++ {
+			go parallelWorker(current, current+startingY[i], slice, channels[i])
+			current += startingY[i]
+		}
 
-	workerChan := make(chan [][]uint16)
-	go worker(slice, workerChan)
-	data := <-workerChan
+		for i := 0; i < len(channels); i++ {
+			d := <-channels[i]
+			data = append(data, d...)
+		}
+	} else {
+		workerChan := make(chan [][]uint16)
+		go worker(slice, workerChan)
+		data = <-workerChan
+	}
 
-	// fmt.Println("New Slice:", data)
 	res.Slice = data
 
 	return
