@@ -2,6 +2,9 @@ package util
 
 import "fmt"
 
+// Lots of debugging functions I wrote as I was going along, its quite
+// hard to debug GOL states when it prints out 7362 to represent 16 cells...
+
 func PrintArea(area []byte, x int, y int) {
 	fmt.Println("printing area at", x, y)
 	for _, line := range area {

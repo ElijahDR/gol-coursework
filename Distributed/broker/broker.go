@@ -39,7 +39,7 @@ func broker(world [][]uint16, p util.Params, n int) [][]uint16 {
 	}
 
 	for i := 0; i < p.Turns; i++ {
-		slices := calcSlices(world, p, n)
+		slices := util.CalcSlices(world, p, n)
 
 		for id, channel := range channels {
 			go callWorker(id, slices[id], p, channel)
@@ -55,34 +55,6 @@ func broker(world [][]uint16, p util.Params, n int) [][]uint16 {
 	}
 
 	return world
-}
-
-func calcSlices(world [][]uint16, p util.Params, n int) [][][]uint16 {
-	rows := util.CalculateNRows(p, n)
-	start := 0
-	// fmt.Println("Rows:", rows)
-	var slices [][][]uint16
-	for i := 0; i < n; i++ {
-		var slice [][]uint16
-		if i == 0 && i == n-1 {
-			slice = append(slice, world[p.ImageHeight-1])
-			slice = append(slice, world[start:start+rows[i]]...)
-			slice = append(slice, world[0])
-		} else if i == 0 {
-			slice = append(slice, world[p.ImageHeight-1])
-			slice = append(slice, world[start:start+rows[i]+1]...)
-		} else if i == n-1 {
-			slice = append(slice, world[start-1:p.ImageHeight]...)
-			slice = append(slice, world[0])
-		} else {
-			slice = append(slice, world[start-1:start+rows[i]+1]...)
-		}
-		slices = append(slices, slice)
-		// fmt.Println(slices)
-		start += rows[i]
-	}
-
-	return slices
 }
 
 func callWorker(id int, slice [][]uint16, p util.Params, channel chan [][]uint16) {
@@ -102,24 +74,6 @@ func callWorker(id int, slice [][]uint16, p util.Params, channel chan [][]uint16
 
 	// fmt.Println(response.Slice)
 	channel <- response.Slice
-}
-
-func convertToBytes(world [][]uint8) [][]byte {
-	var byteWorld [][]byte
-	for _, line := range world {
-		var byteLine []byte
-		for i := 0; i < len(line); i += 8 {
-			b := byte(0)
-			for j := 7; j >= 0; j-- {
-				b = (b) | (line[i+j] << uint8(j))
-			}
-			byteLine = append(byteLine, b)
-		}
-		// fmt.Printf("%016b\n", byte(n))
-		byteWorld = append(byteWorld, byteLine)
-	}
-
-	return byteWorld
 }
 
 func main() {

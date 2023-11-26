@@ -3,62 +3,45 @@ package main
 import (
 	"flag"
 	"fmt"
-	"math"
 	"math/bits"
 	"net"
 	"net/rpc"
+
+	"uk.ac.bris.cs/gameoflife/util"
 )
 
 var PARALLEL = true
 
+//
 func (g *GolCommands) GOLWorker(req GolWorkerRequest, res *GolWorkerResponse) (err error) {
 	slice := req.Slice
 
 	var data [][]uint16
 
-	if PARALLEL {
-		nThreads := int(math.Min(float64(len(slice)), 8))
-		fmt.Println(nThreads)
-		startingY := calcThreads(len(slice)-2, nThreads)
+	// nThreads := int(math.Min(float64(len(slice)), 8))
+	nThreads := 1
+	fmt.Println(nThreads)
+	startingY := util.CalcSharing(len(slice)-2, nThreads)
 
-		channels := make([]chan [][]uint16, nThreads)
-		for i := 0; i < len(channels); i++ {
-			channels[i] = make(chan [][]uint16, 2)
-		}
+	channels := make([]chan [][]uint16, nThreads)
+	for i := 0; i < len(channels); i++ {
+		channels[i] = make(chan [][]uint16, 2)
+	}
 
-		current := 1
-		for i := 0; i < len(channels); i++ {
-			go parallelWorker(current, current+startingY[i], slice, channels[i])
-			current += startingY[i]
-		}
+	current := 1
+	for i := 0; i < len(channels); i++ {
+		go parallelWorker(current, current+startingY[i], slice, channels[i])
+		current += startingY[i]
+	}
 
-		for i := 0; i < len(channels); i++ {
-			d := <-channels[i]
-			data = append(data, d...)
-		}
-	} else {
-		workerChan := make(chan [][]uint16)
-		go worker(slice, workerChan)
-		data = <-workerChan
+	for i := 0; i < len(channels); i++ {
+		d := <-channels[i]
+		data = append(data, d...)
 	}
 
 	res.Slice = data
 
 	return
-}
-
-func calcThreads(x int, n int) []int {
-	rowsEach := x / n
-	nBigger := x - (rowsEach * n)
-	var rows []int
-	for i := 0; i < n-nBigger; i++ {
-		rows = append(rows, rowsEach)
-	}
-	for i := 0; i < nBigger; i++ {
-		rows = append(rows, rowsEach+1)
-	}
-
-	return rows
 }
 
 func parallelWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
@@ -70,20 +53,18 @@ func parallelWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 		for x := 0; x < nuint16; x++ {
 			var newuint16 uint16
 
+			area := make([]byte, 3)
 			if x == 0 {
-				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
 					// Get the last bit of the furthest right uint16 and the first 2 of the first uint16
 					area[j+1] = (byte(slice[y+j][nuint16-1]&1) << 2) | byte(slice[y+j][0]>>14)
 				}
-				newuint16 = uint16(golLogic(area))
 			} else {
-				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
 					area[j+1] = byte(slice[y+j][x-1]&1)<<2 | byte(slice[y+j][x]>>uint8(14))
 				}
-				newuint16 = uint16(golLogic(area))
 			}
+			newuint16 = uint16(golLogic(area))
 
 			for i := 1; i < 15; i++ {
 				area := make([]byte, 3)
@@ -94,21 +75,19 @@ func parallelWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 				newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
 			}
 
+			area = make([]byte, 3)
 			if x == nuint16-1 {
-				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
 					// Get the first bit of the leftmost uint16 and the last two of the rightmost uint16
 					area[j+1] = byte(slice[y+j][nuint16-1]&3)<<1 | byte(slice[y+j][0]>>15)
 				}
-				newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
 			} else {
-				area := make([]byte, 3)
 				for j := -1; j <= 1; j++ {
 					area[j+1] = (byte(slice[y+j][x])&3)<<1 | byte(slice[y+j][x+1]>>15)
 				}
-				// printArea(area, (x+1)*16, y)
-				newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
+				// printArea(area, (x+1)*16, y)]
 			}
+			newuint16 = newuint16<<uint8(1) | uint16(golLogic(area))
 
 			newLine = append(newLine, newuint16)
 		}
