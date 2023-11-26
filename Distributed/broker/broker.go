@@ -324,8 +324,8 @@ func calcRows(p Params, n int) []int {
 }
 
 func main() {
-	// pAddr := flag.String("port", "8030", "Port to listen on")
-	pAddr := flag.String("port", "8031", "Port to listen on")
+	pAddr := flag.String("port", "8030", "Port to listen on")
+	// pAddr := flag.String("port", "8031", "Port to listen on")
 	flag.Parse()
 	rpc.Register(&GolCommands{})
 	listener, _ := net.Listen("tcp", ":"+*pAddr)
