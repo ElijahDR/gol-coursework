@@ -85,7 +85,7 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 	response := new(HaloExchangeRes)
 	client.Call("ServerCommands.HaloExchange", request, response)
 
-	// channel <- response.Slice
+	channel <- response.Slice
 }
 
 func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes) (err error) {
