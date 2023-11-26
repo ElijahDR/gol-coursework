@@ -162,9 +162,11 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 		case <-stopChannel:
 			break
 		default:
-			newRegions := <-dataChannel
-			slice = append([][]uint16{newRegions[0]}, slice...)
-			slice = append(slice, newRegions[1])
+			if i > 0 {
+				newRegions := <-dataChannel
+				slice = append([][]uint16{newRegions[0]}, slice...)
+				slice = append(slice, newRegions[1])
+			}
 
 			currentY := 1
 			for i := 0; i < nThreads; i++ {
