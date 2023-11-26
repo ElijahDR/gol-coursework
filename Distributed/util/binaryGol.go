@@ -187,7 +187,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 	stopChannel <- 1
 }
 
-func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int) {
+func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int) [][]uint16 {
 	var data [][]uint16
 	sliceSize := len(slice)
 
@@ -202,7 +202,7 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 	for i := 0; i < turns; i++ {
 		select {
 		case <-stopChannel:
-			break
+			return slice
 		default:
 			if i > 0 {
 				slice = append([][]uint16{slice[len(slice)-1]}, slice...)
@@ -219,12 +219,13 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 				data = append(data, d...)
 			}
 
-			dataChannel <- data
+			// dataChannel <- data
 			slice = data
 		}
 	}
 
 	stopChannel <- 1
+	return slice
 }
 
 func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
