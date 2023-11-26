@@ -63,9 +63,10 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 		if i == s.id {
 			fmt.Println("That's me!")
 			finalWorld = append(finalWorld, newSlice...)
+		} else {
+			data := <-channel
+			finalWorld = append(finalWorld, data...)
 		}
-		data := <-channel
-		finalWorld = append(finalWorld, data...)
 	}
 
 	res.World = util.ConvertToUint8(finalWorld)
