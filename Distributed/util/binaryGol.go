@@ -219,7 +219,7 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 				data = append(data, d...)
 			}
 
-			// dataChannel <- data
+			dataChannel <- data
 			slice = data
 		}
 	}
