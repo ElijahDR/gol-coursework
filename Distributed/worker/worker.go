@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math"
 	"math/bits"
 	"net"
 	"net/rpc"
@@ -18,9 +19,8 @@ func (g *GolCommands) GOLWorker(req GolWorkerRequest, res *GolWorkerResponse) (e
 
 	var data [][]uint16
 
-	// nThreads := int(math.Min(float64(len(slice)), 8))
-	nThreads := 1
-	fmt.Println(nThreads)
+	nThreads := int(math.Min(float64(len(slice)), 8))
+	// nThreads := 1
 	startingY := util.CalcSharing(len(slice)-2, nThreads)
 
 	channels := make([]chan [][]uint16, nThreads)
