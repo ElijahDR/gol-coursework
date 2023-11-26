@@ -139,15 +139,14 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 }
 
 func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, stopChannel chan int) {
-	haloTurn := s.currentTurn
+	haloTurn := 1
 	for {
 		select {
 		case <-stopChannel:
 			break
 		default:
-			fmt.Println(s.haloRegions, haloTurn)
 			if len(s.haloRegions[haloTurn]) == 2 {
-				receiveHaloChannel <- s.haloRegions[s.currentTurn]
+				receiveHaloChannel <- s.haloRegions[haloTurn]
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)
 				s.haloLock.Unlock()
