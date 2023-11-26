@@ -15,7 +15,6 @@ var NODES = []string{
 	"44.208.149.39",
 	"3.214.156.90",
 	"44.208.47.178",
-	"172.31.46.200",
 }
 
 type haloRegion struct {
@@ -74,7 +73,10 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 	destIP := NODES[id] + ":8030"
 	fmt.Println("Asking", destIP, "to partake in Halo Exchange")
 
-	client, _ := rpc.Dial("tcp", destIP)
+	client, err := rpc.Dial("tcp", destIP)
+	if err != nil {
+		panic(err)
+	}
 	defer client.Close()
 	request := HaloExchangeReq{
 		Slice: slice,
@@ -87,9 +89,9 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 }
 
 func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res HaloExchangeRes) (err error) {
-	fmt.Println("Running Halo Exchange...")
 	s.slice = req.Slice
 	turns := req.Turns
+	fmt.Println("Running Halo Exchange...")
 
 	runHaloExchange(s, turns)
 
