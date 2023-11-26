@@ -183,6 +183,7 @@ func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 	var slices [][][]uint16
 	for i := 0; i < n; i++ {
 		var slice [][]uint16
+		fmt.Println(slices)
 		if i == 0 && i == n-1 {
 			slice = append(slice, world[p.ImageHeight-1])
 			slice = append(slice, world[start:start+rows[i]]...)
