@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"net"
 	"net/rpc"
-
-	"uk.ac.bris.cs/gameoflife/util"
 )
 
 var NODES = []string{
@@ -26,7 +24,6 @@ func (g *GolCommands) GOLBroker(req GolBrokerRequest, res *GolBrokerResponse) (e
 	world := req.World
 	uint16World := convertToUint16(world)
 	newWorld := broker(uint16World, params, 4)
-	util.PrintUint16World(uint16World)
 	res.World = convertToNormal(newWorld)
 
 	return
