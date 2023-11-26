@@ -2,30 +2,10 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"math/bits"
 	"net"
 	"net/rpc"
 )
-
-func printArea(area []byte, x int, y int) {
-	fmt.Println("printing area at", x, y)
-	for _, line := range area {
-		fmt.Printf("%03b\n", line)
-	}
-}
-
-func printuint16(arr [][]uint16) {
-	for i, line := range arr {
-		fmt.Printf("%0v %016b\n", i, line)
-	}
-}
-
-func printRows(arr [][]uint16, y int) {
-	fmt.Printf("%0v %016b\n", y-1, arr[y-1])
-	fmt.Printf("%0v %016b\n", y, arr[y])
-	fmt.Printf("%0v %016b\n", y+1, arr[y+1])
-}
 
 func (g *GolCommands) GOLWorker(req GolWorkerRequest, res *GolWorkerResponse) (err error) {
 	// fmt.Println("Worker", req.ID, "received slice")

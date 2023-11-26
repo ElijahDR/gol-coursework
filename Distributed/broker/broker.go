@@ -1,10 +1,12 @@
-package main
+package broker
 
 import (
 	"flag"
 	"fmt"
 	"net"
 	"net/rpc"
+
+	"uk.ac.bris.cs/gameoflife/util"
 )
 
 var NODES = []string{
@@ -17,105 +19,15 @@ var NODES = []string{
 
 var N_NODES = 4
 
-func printuint16(arr [][]uint16) {
-	for _, line := range arr {
-		for _, u := range line {
-			fmt.Printf("%016b", u)
-		}
-		fmt.Print("\n")
-	}
-	fmt.Print("\n")
-}
-
-func printLine(line []uint8) {
-	for _, cell := range line {
-		if cell == 255 {
-			fmt.Print(1)
-		} else {
-			fmt.Print(0)
-		}
-	}
-	fmt.Println()
-}
-
-func printNormal(world [][]uint8) {
-	for _, line := range world {
-		for _, cell := range line {
-			if cell == 255 {
-				fmt.Print(1)
-			} else {
-				fmt.Print(0)
-			}
-		}
-		fmt.Println()
-	}
-}
-
-func compare(w1 [][]uint8, w2 [][]uint16) bool {
-	var str1 string
-	var str2 string
-	for y := 0; y < len(w1); y++ {
-		for _, cell := range w1[y] {
-			if cell == 255 {
-				str1 += "1"
-			} else {
-				str1 += "0"
-			}
-		}
-
-		for _, u := range w2[y] {
-			str2 += fmt.Sprintf("%016b", u)
-		}
-	}
-
-	fmt.Println(str1 == str2)
-	return str1 == str2
-}
-
-func compareConversion(world1 [][]uint8, world2 [][]uint16) {
-	// for j := 0; j < 20; j++ {
-	// 	for i := 0; i < 10; i++ {
-	// 		fmt.Print(i)
-	// 	}
-	// }
-
-	fmt.Println()
-	for y := 0; y < len(world1); y++ {
-
-		for _, cell := range world1[y] {
-			if cell == 255 {
-				fmt.Print(1)
-			} else {
-				fmt.Print(0)
-			}
-		}
-		fmt.Print("\t\t")
-
-		for _, u := range world2[y] {
-			fmt.Printf("%016b", u)
-		}
-
-		fmt.Println()
-	}
-}
-
 func (g *GolCommands) GOLBroker(req GolBrokerRequest, res *GolBrokerResponse) (err error) {
 	params := req.Params
 	fmt.Println("Broker Received Request:", params.ImageWidth, "x", params.ImageHeight, "for", params.Turns, "turns")
 
 	world := req.World
 	uint16World := convertToUint16(world)
-	// compare(world, uint16World)
-
-	// compareConversion(world, uint16World)
-	// printuint16(uint16World)
 	newWorld := broker(uint16World, params, 4)
-	// printuint16(uint16World)
-	// fmt.Println(newWorld)
+	util.PrintUint16World(uint16World)
 	res.World = convertToNormal(newWorld)
-
-	// compare(res.World, newWorld)
-	// compareConversion(res.World, newWorld)
 
 	return
 }
