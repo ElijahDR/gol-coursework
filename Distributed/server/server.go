@@ -86,6 +86,7 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 }
 
 func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res HaloExchangeRes) (err error) {
+	fmt.Println("Running Halo Exchange...")
 	s.slice = req.Slice
 	turns := req.Turns
 
@@ -149,6 +150,7 @@ func sendHaloRegions(s *ServerCommands, sendHaloChannel chan haloRegion, stopCha
 func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res HaloRegionRes) {
 	region := req.Region
 	turn := req.CurrentTurn
+	fmt.Println("Receiving halo regions for turn", turn)
 	s.haloLock.Lock()
 	_, exists := s.haloRegions[turn]
 	if exists {
@@ -167,6 +169,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	bottomID := (s.id - 1) + (len(NODES))%(len(NODES))
 	topID := (s.id + 1) % len(NODES)
 
+	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "and", topID)
 	client, _ := rpc.Dial("tcp", NODES[bottomID]+":8030")
 	defer client.Close()
 	request := HaloRegionReq{
