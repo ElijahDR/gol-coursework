@@ -3,7 +3,7 @@
     "port": 22,
     "user": "root",
     "ignore":[".git",".vscode"],
-    "remotePath": "/root",
-    "identity_file": "~/.ssh/id_rsa",
+    "remotePath": "~/",
+    "identity_file": "~/.ssh/GOL_KEYS.pem",
     "uploadOnSave": true
 }
