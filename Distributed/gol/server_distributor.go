@@ -9,7 +9,6 @@ import (
 func testHalo() {
 	server := "23.22.135.15:8030"
 	// server := "127.0.0.1:8031"
-	flag.Parse()
 	client, err := rpc.Dial("tcp", server)
 	fmt.Println(err)
 	defer client.Close()

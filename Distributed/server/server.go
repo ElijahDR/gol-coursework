@@ -88,7 +88,7 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 	// channel <- response.Slice
 }
 
-func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res HaloExchangeRes) (err error) {
+func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes) (err error) {
 	s.slice = req.Slice
 	turns := req.Turns
 	fmt.Println("Running Halo Exchange...")
