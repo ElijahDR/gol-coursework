@@ -149,6 +149,23 @@ func receiveHaloRegions(s *ServerCommands, dataChannel chan [][]uint16, stopChan
 	}
 }
 
+func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType int) {
+	fmt.Println("Waiting to unlock halo lock...")
+	s.haloLock.Lock()
+	fmt.Println("Unlocked!")
+	_, exists := s.haloRegions[turn]
+	if exists {
+		if haloType == 0 {
+			s.haloRegions[turn] = append([][]uint16{region}, s.haloRegions[turn]...)
+		} else {
+			s.haloRegions[turn] = append(s.haloRegions[turn], region)
+		}
+	} else {
+		s.haloRegions[turn] = [][]uint16{region}
+	}
+	s.haloLock.Unlock()
+}
+
 func sendHaloRegions(s *ServerCommands, sendHaloChannel chan haloRegion, stopChannel chan int) {
 	for {
 		select {
@@ -165,18 +182,7 @@ func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRe
 	region := req.Region
 	turn := req.CurrentTurn
 	fmt.Println("Receiving halo regions for turn", turn)
-	s.haloLock.Lock()
-	_, exists := s.haloRegions[turn]
-	if exists {
-		if req.Type == 0 {
-			s.haloRegions[turn] = append([][]uint16{region}, s.haloRegions[turn]...)
-		} else {
-			s.haloRegions[turn] = append(s.haloRegions[turn], region)
-		}
-	} else {
-		s.haloRegions[turn] = [][]uint16{region}
-	}
-	s.haloLock.Unlock()
+	go updateHaloRegions(s, region, turn, req.Type)
 }
 
 func makeHaloExchange(s *ServerCommands, region haloRegion) {
