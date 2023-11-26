@@ -204,6 +204,10 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 		case <-stopChannel:
 			break
 		default:
+			if i > 0 {
+				slice = append([][]uint16{slice[len(slice)-1]}, slice...)
+				slice = append(slice, slice[0])
+			}
 			currentY := 1
 			for i := 0; i < nThreads; i++ {
 				go SliceWorker(currentY, currentY+startingY[i], slice, workerChannels[i])
