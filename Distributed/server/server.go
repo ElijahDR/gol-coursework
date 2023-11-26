@@ -75,6 +75,8 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	}
 
 	res.World = util.ConvertToUint8(finalWorld)
+	s.currentTurn = 0
+	s.haloRegions = nil
 	return
 }
 
