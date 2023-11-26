@@ -192,7 +192,7 @@ func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 			slice = append(slice, world[p.ImageHeight-1])
 			slice = append(slice, world[start:start+rows[i]+1]...)
 		} else if i == n-1 {
-			slice = append(slice, world[start:p.ImageHeight-1]...)
+			slice = append(slice, world[start-1:p.ImageHeight]...)
 			slice = append(slice, world[0])
 		} else {
 			slice = append(slice, world[start-1:start+rows[i]+1]...)
