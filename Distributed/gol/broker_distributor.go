@@ -43,7 +43,7 @@ func broker_distributor(p Params, c distributorChannels, keyPresses <-chan rune)
 	}
 
 	// server := "23.22.135.15:8030"
-	server := "127.0.0.1:8030"
+	server := "127.0.0.1:8031"
 	flag.Parse()
 	client, _ := rpc.Dial("tcp", server)
 	defer client.Close()

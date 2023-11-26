@@ -8,6 +8,7 @@ import (
 )
 
 var NODES = []string{
+	// "127.0.0.1",
 	"35.174.225.191",
 	"44.208.149.39",
 	"3.214.156.90",
@@ -16,16 +17,132 @@ var NODES = []string{
 
 var N_NODES = 4
 
+func printuint16(arr [][]uint16) {
+	for _, line := range arr {
+		for _, u := range line {
+			fmt.Printf("%016b", u)
+		}
+		fmt.Print("\n")
+	}
+	fmt.Print("\n")
+}
+
+func printLine(line []uint8) {
+	for _, cell := range line {
+		if cell == 255 {
+			fmt.Print(1)
+		} else {
+			fmt.Print(0)
+		}
+	}
+	fmt.Println()
+}
+
+func printNormal(world [][]uint8) {
+	for _, line := range world {
+		for _, cell := range line {
+			if cell == 255 {
+				fmt.Print(1)
+			} else {
+				fmt.Print(0)
+			}
+		}
+		fmt.Println()
+	}
+}
+
+func compare(w1 [][]uint8, w2 [][]uint16) bool {
+	var str1 string
+	var str2 string
+	for y := 0; y < len(w1); y++ {
+		for _, cell := range w1[y] {
+			if cell == 255 {
+				str1 += "1"
+			} else {
+				str1 += "0"
+			}
+		}
+
+		for _, u := range w2[y] {
+			str2 += fmt.Sprintf("%016b", u)
+		}
+	}
+
+	fmt.Println(str1 == str2)
+	return str1 == str2
+}
+
+func compareConversion(world1 [][]uint8, world2 [][]uint16) {
+	// for j := 0; j < 20; j++ {
+	// 	for i := 0; i < 10; i++ {
+	// 		fmt.Print(i)
+	// 	}
+	// }
+
+	fmt.Println()
+	for y := 0; y < len(world1); y++ {
+
+		for _, cell := range world1[y] {
+			if cell == 255 {
+				fmt.Print(1)
+			} else {
+				fmt.Print(0)
+			}
+		}
+		fmt.Print("\t\t")
+
+		for _, u := range world2[y] {
+			fmt.Printf("%016b", u)
+		}
+
+		fmt.Println()
+	}
+}
+
 func (g *GolCommands) GOLBroker(req GolBrokerRequest, res *GolBrokerResponse) (err error) {
 	params := req.Params
 	fmt.Println("Broker Received Request:", params.ImageWidth, "x", params.ImageHeight, "for", params.Turns, "turns")
 
 	world := req.World
-	newWorld := broker(convertToUint16(world), params, 1)
+	uint16World := convertToUint16(world)
+	// compare(world, uint16World)
 
+	// compareConversion(world, uint16World)
+	// printuint16(uint16World)
+	newWorld := broker(uint16World, params, 1)
+	// printuint16(uint16World)
+	// fmt.Println(newWorld)
 	res.World = convertToNormal(newWorld)
 
+	// compare(res.World, newWorld)
+	// compareConversion(res.World, newWorld)
+
 	return
+}
+
+func compareWorlds(w1 [][]uint16, w2 [][]uint8) {
+	for y := 0; y < len(w1); y++ {
+		for _, u := range w1[y] {
+			fmt.Printf("%016b", u)
+		}
+
+		fmt.Print("\t\t")
+
+		for _, cell := range w2[y] {
+			if cell == 255 {
+				fmt.Print(1)
+				// s1 += "1"
+			} else {
+				fmt.Print(0)
+				// s1 += "0"
+			}
+		}
+
+		fmt.Print("\n")
+	}
+
+	fmt.Print("\n")
+	fmt.Print("\n")
 }
 
 func broker(world [][]uint16, p Params, n int) [][]uint16 {
@@ -34,19 +151,30 @@ func broker(world [][]uint16, p Params, n int) [][]uint16 {
 		channels[i] = make(chan [][]uint16)
 	}
 
-	slices := calcSlices(world, p, n)
+	w2 := convertToNormal(world)
 
-	for i, channel := range channels {
-		go callWorker(i, slices[i], p, channel)
+	// p.Turns = 1
+	for i := 0; i < p.Turns; i++ {
+		slices := calcSlices(world, p, n)
+
+		for id, channel := range channels {
+			go callWorker(id, slices[id], p, channel)
+		}
+
+		var newWorld [][]uint16
+		for _, channel := range channels {
+			data := <-channel
+			newWorld = append(newWorld, data...)
+		}
+
+		// fmt.Println("Turn", i)
+		// printuint16(slices[0])
+		// compareWorlds(world, w2)
+		w2 = calculateStep(p, w2)
+		world = newWorld
 	}
 
-	var newWorld [][]uint16
-	for _, channel := range channels {
-		data := <-channel
-		newWorld = append(newWorld, data...)
-	}
-
-	return newWorld
+	return world
 }
 
 func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
@@ -76,7 +204,7 @@ func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 
 func callWorker(id int, slice [][]uint16, p Params, channel chan [][]uint16) {
 	server := NODES[id] + ":8030"
-	fmt.Println("Sending request to", server, "id", id)
+	// fmt.Println("Sending request to", server, "id", id)
 	flag.Parse()
 	client, _ := rpc.Dial("tcp", server)
 	defer client.Close()
@@ -89,8 +217,8 @@ func callWorker(id int, slice [][]uint16, p Params, channel chan [][]uint16) {
 	client.Call("GolCommands.GOLWorker", request, response)
 	// fmt.Println(response.World)
 
+	// fmt.Println(response.Slice)
 	channel <- response.Slice
-	return
 }
 
 func convertToBytes(world [][]uint8) [][]byte {
@@ -111,18 +239,52 @@ func convertToBytes(world [][]uint8) [][]byte {
 	return byteWorld
 }
 
+func printByteLine(line []uint16) {
+	for _, u := range line {
+		fmt.Printf("%016b", u)
+	}
+	fmt.Print("\n")
+}
+
+func compareLines(l1 []uint8, l2 []uint16) bool {
+	var s1 string
+	var s2 string
+
+	for _, cell := range l1 {
+		if cell == 255 {
+			// fmt.Print(1)
+			s1 += "1"
+		} else {
+			// fmt.Print(0)
+			s1 += "0"
+		}
+	}
+	// fmt.Println()
+
+	for _, u := range l2 {
+		// fmt.Printf("%016b", u)
+		s2 += fmt.Sprintf("%016b", u)
+	}
+	// fmt.Print("\n")
+
+	fmt.Println(s1)
+	fmt.Println(s2)
+	fmt.Println(s1 == s2)
+	return s1 == s2
+}
+
 func convertToUint16(world [][]uint8) [][]uint16 {
 	var byteWorld [][]uint16
 	for _, line := range world {
 		var byteLine []uint16
 		for i := 0; i < len(line); i += 16 {
-			b := uint16(0)
-			for j := 15; j >= 0; j-- {
-				b = (b) | uint16(line[i+j]<<uint8(j))
+			b := uint16(line[i] & 1)
+			for j := 1; j < 16; j++ {
+				b = (b << 1) | uint16((line[i+j] & 1))
 			}
 			byteLine = append(byteLine, b)
 		}
-		// fmt.Printf("%016b\n", byte(n))
+		// compareLines(line, byteLine)
 		byteWorld = append(byteWorld, byteLine)
 	}
 
@@ -134,10 +296,10 @@ func convertToNormal(world [][]uint16) [][]uint8 {
 	maxX := len(world[0])
 	for y := 0; y < len(world); y++ {
 		var newLine []uint8
-		for x := 0; x < maxX; y++ {
+		for x := 0; x < maxX; x++ {
 			n := world[y][x]
 			for i := 0; i < 16; i++ {
-				newLine = append(newLine, uint8(n>>uint8(15-i))&1)
+				newLine = append(newLine, (uint8(n>>uint8(15-i))&1)*255)
 			}
 		}
 		newWorld = append(newWorld, newLine)
@@ -157,12 +319,13 @@ func calcRows(p Params, n int) []int {
 		rows = append(rows, rowsEach+1)
 	}
 
-	fmt.Println(rows)
+	// fmt.Println(rows)
 	return rows
 }
 
 func main() {
-	pAddr := flag.String("port", "8030", "Port to listen on")
+	// pAddr := flag.String("port", "8030", "Port to listen on")
+	pAddr := flag.String("port", "8031", "Port to listen on")
 	flag.Parse()
 	rpc.Register(&GolCommands{})
 	listener, _ := net.Listen("tcp", ":"+*pAddr)

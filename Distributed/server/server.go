@@ -394,7 +394,8 @@ func cellDistribution(channels []chan []byte, p Params, world [][]uint8, coords 
 }
 
 func main() {
-	pAddr := flag.String("port", "8030", "Port to listen on")
+	// pAddr := flag.String("port", "8030", "Port to listen on")
+	pAddr := flag.String("port", "8032", "Port to listen on")
 	flag.Parse()
 	finishedChan := make(chan bool)
 	keyPresses := make(chan rune, 1)
