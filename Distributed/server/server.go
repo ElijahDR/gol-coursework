@@ -56,6 +56,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 	newSlice := runHaloExchange(s, turns)
 
+	fmt.Println("Combining world...")
 	var finalWorld [][]uint16
 	for i, channel := range channels {
 		if i == s.id {
@@ -153,7 +154,7 @@ func sendHaloRegions(s *ServerCommands, sendHaloChannel chan haloRegion, stopCha
 	}
 }
 
-func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res HaloRegionRes) {
+func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRes) {
 	region := req.Region
 	turn := req.CurrentTurn
 	fmt.Println("Receiving halo regions for turn", turn)
@@ -227,7 +228,7 @@ func sliceUpdater(s *ServerCommands, dataChannel chan [][]uint16, stopChannel ch
 // 	}
 // }
 
-func (s *ServerCommands) CheckAlive(req CheckAliveReq, res CheckAliveRes) (err error) {
+func (s *ServerCommands) CheckAlive(req CheckAliveReq, res *CheckAliveRes) (err error) {
 	res.ResponseID = s.id
 	return
 }
