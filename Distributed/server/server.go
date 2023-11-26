@@ -178,11 +178,13 @@ func sendHaloRegions(s *ServerCommands, sendHaloChannel chan haloRegion, stopCha
 	}
 }
 
-func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRes) {
+func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRes) (err error) {
 	region := req.Region
 	turn := req.CurrentTurn
 	fmt.Println("Receiving halo regions for turn", turn)
 	go updateHaloRegions(s, region, turn, req.Type)
+
+	return
 }
 
 func makeSendHalo(id int, req HaloRegionReq) {
