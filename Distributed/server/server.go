@@ -48,6 +48,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 	for i, slice := range slices {
 		if i == s.id {
+			s.slice = slice
 			continue
 		}
 		go callHaloExchange(i, slice, turns, channels[i])
