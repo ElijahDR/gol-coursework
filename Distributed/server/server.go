@@ -183,7 +183,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	bottomID := ((s.id - 1) + (len(NODES))) % (len(NODES))
 	topID := (s.id + 1) % len(NODES)
 
-	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "and", topID)
+	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "and", topID, "for turn", region.currentTurn)
 	client, _ := rpc.Dial("tcp", NODES[bottomID]+":8030")
 	defer client.Close()
 	request := HaloRegionReq{
