@@ -151,8 +151,8 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)
 				s.haloLock.Unlock()
+				haloTurn++
 			}
-			haloTurn++
 		}
 	}
 }
