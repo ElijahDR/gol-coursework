@@ -63,3 +63,11 @@ type HaloRegionReq struct {
 
 type HaloRegionRes struct {
 }
+
+type IterateSliceReq struct {
+	Slice [][]uint16
+}
+
+type IterateSliceRes struct {
+	Slice [][]uint16
+}

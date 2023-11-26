@@ -12,9 +12,9 @@ import (
 var NODES = []string{
 	"23.22.135.15",
 	"35.174.225.191",
-	// "44.208.149.39",
-	// "3.214.156.90",
-	// "44.208.47.178",
+	"44.208.149.39",
+	"3.214.156.90",
+	"44.208.47.178",
 }
 
 type haloRegion struct {
@@ -42,42 +42,28 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 	fmt.Println("Server Received Request:", width, "x", height, "for", req.Turns, "turns")
 
-	uint16World := util.ConvertToUint16(world)
-
-	slices := util.CalcSlices(uint16World, height, len(NODES)-len(blacklist))
-
-	channels := make([]chan [][]uint16, len(NODES))
-	for i := 0; i < len(NODES); i++ {
-		channels[i] = make(chan [][]uint16, 2)
-	}
-
-	for i, slice := range slices {
-		if i == s.id {
-			s.slice = slice
-			continue
-		}
-		go callHaloExchange(i, slice, turns, channels[i])
-	}
-
-	newSlice := runHaloExchange(s, turns)
-
-	// fmt.Println("Combining world...")
-	var finalWorld [][]uint16
-	for i, channel := range channels {
-		// fmt.Println("Getting world from", i)
-		if i == s.id {
-			// fmt.Println("That's me!")
-			finalWorld = append(finalWorld, newSlice...)
-		} else {
-			data := <-channel
-			finalWorld = append(finalWorld, data...)
-		}
-	}
-
-	res.World = util.ConvertToUint8(finalWorld)
+	res.World = masterHaloExchange(s, world, turns)
 	s.currentTurn = 0
 	return
 }
+
+func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes) (err error) {
+	slice := req.Slice
+	dataChannel := make(chan [][]uint16)
+	stopChannel := make(chan int)
+	go util.SimulateSlice(slice, dataChannel, stopChannel, 1, nil)
+	data := <-dataChannel
+	res.Slice = data
+	return
+}
+
+// func (s *ServerCommands) SimulateWorld(req)
+
+// func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
+// 	uint16World := util.ConvertToUint16(world)
+
+// 	slices := util.CalcSlices(uint16World, len(world), len(NODES)-len(blacklist))
+// }
 
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {
 	destIP := NODES[id] + ":8030"
@@ -110,6 +96,42 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
 	return
+}
+
+func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
+	uint16World := util.ConvertToUint16(world)
+
+	slices := util.CalcSlices(uint16World, len(world), len(NODES)-len(blacklist))
+
+	channels := make([]chan [][]uint16, len(NODES))
+	for i := 0; i < len(NODES); i++ {
+		channels[i] = make(chan [][]uint16, 2)
+	}
+
+	for i, slice := range slices {
+		if i == s.id {
+			s.slice = slice
+			continue
+		}
+		go callHaloExchange(i, slice, turns, channels[i])
+	}
+
+	newSlice := runHaloExchange(s, turns)
+
+	// fmt.Println("Combining world...")
+	var finalWorld [][]uint16
+	for i, channel := range channels {
+		// fmt.Println("Getting world from", i)
+		if i == s.id {
+			// fmt.Println("That's me!")
+			finalWorld = append(finalWorld, newSlice...)
+		} else {
+			data := <-channel
+			finalWorld = append(finalWorld, data...)
+		}
+	}
+
+	return util.ConvertToUint8(finalWorld)
 }
 
 func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
