@@ -35,6 +35,11 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	height := len(world)
 	width := len(world[0])
 
+	if turns == 0 {
+		res.World = world
+		return
+	}
+
 	fmt.Println("Server Received Request:", width, "x", height, "for", req.Turns, "turns")
 
 	uint16World := util.ConvertToUint16(world)
@@ -67,10 +72,6 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 			data := <-channel
 			finalWorld = append(finalWorld, data...)
 		}
-	}
-
-	if turns == 0 {
-		finalWorld = uint16World
 	}
 
 	res.World = util.ConvertToUint8(finalWorld)
