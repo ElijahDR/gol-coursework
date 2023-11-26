@@ -10,7 +10,7 @@ import (
 )
 
 var NODES = []string{
-	"127.0.0.1",
+	// "127.0.0.1",
 	"35.174.225.191",
 	"44.208.149.39",
 	"3.214.156.90",
@@ -25,8 +25,8 @@ func (g *GolCommands) GOLBroker(req GolBrokerRequest, res *GolBrokerResponse) (e
 
 	world := req.World
 	uint16World := util.ConvertToUint16(world)
-	newWorld := broker(uint16World, params, 1)
-	// newWorld := broker(uint16World, params, 4)
+	// newWorld := broker(uint16World, params, 1)
+	newWorld := broker(uint16World, params, 4)
 	res.World = util.ConvertToUint8(newWorld)
 
 	return
@@ -123,8 +123,8 @@ func convertToBytes(world [][]uint8) [][]byte {
 }
 
 func main() {
-	// pAddr := flag.String("port", "8030", "Port to listen on")
-	pAddr := flag.String("port", "8031", "Port to listen on")
+	pAddr := flag.String("port", "8030", "Port to listen on")
+	// pAddr := flag.String("port", "8031", "Port to listen on")
 	flag.Parse()
 	rpc.Register(&GolCommands{})
 	listener, _ := net.Listen("tcp", ":"+*pAddr)
