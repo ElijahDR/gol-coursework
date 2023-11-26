@@ -39,7 +39,9 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	}
 
 	fmt.Println("Server Received Request:", width, "x", height, "for", req.Turns, "turns")
-	if height < 512 && width < 512 {
+	if height < 64 && width < 64 {
+		res.World = masterLocal(s, world, turns)
+	} else if height < 512 && width < 512 {
 		res.World = masterNormal(s, world, turns)
 	} else {
 		res.World = masterHaloExchange(s, world, turns)
@@ -47,38 +49,6 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 	s.currentTurn = 0
 	return
-}
-
-func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes) (err error) {
-	slice := req.Slice
-	res.Slice = iterateSlice(slice)
-	return
-}
-
-func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRes) (err error) {
-	region := req.Region
-	turn := req.CurrentTurn
-	fmt.Println("Receiving halo regions for turn", turn)
-	go updateHaloRegions(s, region, turn, req.Type)
-
-	return
-}
-
-func sliceUpdater(s *ServerCommands, dataChannel chan [][]uint16, stopChannel chan int, sendHaloChannel chan haloRegion) {
-	for {
-		select {
-		case <-stopChannel:
-			break
-		case newSlice := <-dataChannel:
-			s.mu.Lock()
-			s.slice = newSlice
-			s.currentTurn++
-			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
-			sendHaloChannel <- haloRegion{regions: regions, currentTurn: s.currentTurn}
-			s.mu.Unlock()
-		default:
-		}
-	}
 }
 
 // func currentHaloRegions(s *ServerCommands) haloRegion {

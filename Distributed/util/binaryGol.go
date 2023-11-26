@@ -145,7 +145,7 @@ func GolLogic(area []byte) byte {
 	}
 }
 
-func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int, receiveHaloChannel chan [][]uint16) {
+func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int, receiveHaloChannel chan [][]uint16) {
 	var data [][]uint16
 	sliceSize := len(slice)
 
@@ -168,6 +168,42 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 				slice = append(slice, newRegions[1])
 			}
 
+			currentY := 1
+			for i := 0; i < nThreads; i++ {
+				go SliceWorker(currentY, currentY+startingY[i], slice, workerChannels[i])
+				currentY += startingY[i]
+			}
+
+			for i := 0; i < nThreads; i++ {
+				d := <-workerChannels[i]
+				data = append(data, d...)
+			}
+
+			dataChannel <- data
+			slice = data
+		}
+	}
+
+	stopChannel <- 1
+}
+
+func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int) {
+	var data [][]uint16
+	sliceSize := len(slice)
+
+	nThreads := int(math.Min(float64(sliceSize), 8))
+	startingY := CalcSharing(sliceSize-2, nThreads)
+
+	workerChannels := make([]chan [][]uint16, nThreads)
+	for i := 0; i < nThreads; i++ {
+		workerChannels[i] = make(chan [][]uint16, 2)
+	}
+
+	for i := 0; i < turns; i++ {
+		select {
+		case <-stopChannel:
+			break
+		default:
 			currentY := 1
 			for i := 0; i < nThreads; i++ {
 				go SliceWorker(currentY, currentY+startingY[i], slice, workerChannels[i])

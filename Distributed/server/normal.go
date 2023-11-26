@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
@@ -48,7 +47,7 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 
 func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
 	destIP := NODES[id] + ":8030"
-	fmt.Println("Asking", destIP, "to iterate slice")
+	// fmt.Println("Asking", destIP, "to iterate slice")
 
 	client, err := rpc.Dial("tcp", destIP)
 	if err != nil {
@@ -64,10 +63,16 @@ func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
 	channel <- response.Slice
 }
 
+func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes) (err error) {
+	slice := req.Slice
+	res.Slice = iterateSlice(slice)
+	return
+}
+
 func iterateSlice(slice [][]uint16) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannel := make(chan int)
-	go util.SimulateSlice(slice, dataChannel, stopChannel, 1, nil)
+	go util.SimulateSlice(slice, dataChannel, stopChannel, 1)
 	data := <-dataChannel
 	return data
 }

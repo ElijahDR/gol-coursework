@@ -21,6 +21,15 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	return
 }
 
+func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRes) (err error) {
+	region := req.Region
+	turn := req.CurrentTurn
+	fmt.Println("Receiving halo regions for turn", turn)
+	go updateHaloRegions(s, region, turn, req.Type)
+
+	return
+}
+
 // The function called by the node requested by the client
 func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 	uint16World := util.ConvertToUint16(world)
@@ -62,14 +71,14 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannels := make(map[string]chan int)
 	sendHaloChannel := make(chan haloRegion, 100)
-	receiveHaloChannel := make(chan [][]uint16, 10)
+	receiveHaloChannel := make(chan [][]uint16, 100)
 	s.haloRegions = make(map[int][][]uint16)
 
 	stopChannels["simulator"] = make(chan int)
-	go util.SimulateSlice(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
+	go util.SimulateSliceHalo(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
 
 	stopChannels["sliceUpdater"] = make(chan int)
-	go sliceUpdater(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
+	go updateSliceHalo(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
 
 	stopChannels["sendHaloRegions"] = make(chan int)
 	go sendHaloRegions(s, sendHaloChannel, stopChannels["sendHaloRegions"])
@@ -89,6 +98,23 @@ func makeSendHalo(id int, req HaloRegionReq) {
 	defer client.Close()
 	response := new(HaloRegionRes)
 	client.Call("ServerCommands.ReceiveHaloRegions", req, response)
+}
+
+func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel chan int, sendHaloChannel chan haloRegion) {
+	for {
+		select {
+		case <-stopChannel:
+			break
+		case newSlice := <-dataChannel:
+			s.mu.Lock()
+			s.slice = newSlice
+			s.currentTurn++
+			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
+			sendHaloChannel <- haloRegion{regions: regions, currentTurn: s.currentTurn}
+			s.mu.Unlock()
+		default:
+		}
+	}
 }
 
 func sendHaloRegions(s *ServerCommands, sendHaloChannel chan haloRegion, stopChannel chan int) {
