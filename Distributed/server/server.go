@@ -185,31 +185,32 @@ func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRe
 	go updateHaloRegions(s, region, turn, req.Type)
 }
 
+func makeSendHalo(id int, req HaloRegionReq) {
+	client, _ := rpc.Dial("tcp", NODES[id]+":8030")
+	defer client.Close()
+	response := new(HaloRegionRes)
+	client.Call("ServerCommands.ReceiveHaloRegions", req, response)
+}
+
 func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	bottomID := ((s.id - 1) + (len(NODES))) % (len(NODES))
 	topID := (s.id + 1) % len(NODES)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "for turn", region.currentTurn)
-	client, _ := rpc.Dial("tcp", NODES[bottomID]+":8030")
-	defer client.Close()
 	request := HaloRegionReq{
 		Region:      region.regions[0],
 		CurrentTurn: region.currentTurn,
 		Type:        1,
 	}
-	response := new(HaloRegionRes)
-	client.Call("ServerCommands.ReceiveHaloRegions", request, response)
+	makeSendHalo(bottomID, request)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", topID, "for turn", region.currentTurn)
-	client, _ = rpc.Dial("tcp", NODES[topID]+":8030")
-	defer client.Close()
 	request = HaloRegionReq{
 		Region:      region.regions[1],
 		CurrentTurn: region.currentTurn,
 		Type:        0,
 	}
-	response = new(HaloRegionRes)
-	client.Call("ServerCommands.ReceiveHaloRegions", request, response)
+	makeSendHalo(topID, request)
 }
 
 func sliceUpdater(s *ServerCommands, dataChannel chan [][]uint16, stopChannel chan int, sendHaloChannel chan haloRegion) {
