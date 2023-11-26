@@ -12,9 +12,9 @@ import (
 var NODES = []string{
 	"23.22.135.15",
 	"35.174.225.191",
-	"44.208.149.39",
-	"3.214.156.90",
-	"44.208.47.178",
+	// "44.208.149.39",
+	// "3.214.156.90",
+	// "44.208.47.178",
 }
 
 type haloRegion struct {
@@ -117,7 +117,9 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	stopChannels["receiveHaloRegions"] = make(chan int)
 	go receiveHaloRegions(s, dataChannel, stopChannels["receiveHaloRegions"])
 
+	fmt.Println("Waiting for finish...")
 	<-stopChannels["simulator"]
+	fmt.Println("Finished")
 
 	return s.slice
 }

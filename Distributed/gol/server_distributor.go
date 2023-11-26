@@ -26,7 +26,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	turn := 0
 	world := readWorld(p, c)
 
-	testHalo()
+	// testHalo()
 
 	server := "23.22.135.15:8030"
 	// server := "127.0.0.1:8031"
