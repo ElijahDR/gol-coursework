@@ -108,6 +108,7 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	res.Slice = s.slice
 	res.CurrentTurn = turns
 	s.haloRegions = make(map[int][][]uint16)
+	s.currentTurn = 0
 	return
 }
 
