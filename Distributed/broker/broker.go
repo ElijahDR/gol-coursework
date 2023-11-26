@@ -109,7 +109,7 @@ func (g *GolCommands) GOLBroker(req GolBrokerRequest, res *GolBrokerResponse) (e
 
 	// compareConversion(world, uint16World)
 	// printuint16(uint16World)
-	newWorld := broker(uint16World, params, 1)
+	newWorld := broker(uint16World, params, 4)
 	// printuint16(uint16World)
 	// fmt.Println(newWorld)
 	res.World = convertToNormal(newWorld)
@@ -151,7 +151,7 @@ func broker(world [][]uint16, p Params, n int) [][]uint16 {
 		channels[i] = make(chan [][]uint16)
 	}
 
-	w2 := convertToNormal(world)
+	// w2 := convertToNormal(world)
 
 	// p.Turns = 1
 	for i := 0; i < p.Turns; i++ {
@@ -170,7 +170,7 @@ func broker(world [][]uint16, p Params, n int) [][]uint16 {
 		// fmt.Println("Turn", i)
 		// printuint16(slices[0])
 		// compareWorlds(world, w2)
-		w2 = calculateStep(p, w2)
+		// w2 = calculateStep(p, w2)
 		world = newWorld
 	}
 
