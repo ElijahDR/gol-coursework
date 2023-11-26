@@ -66,6 +66,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	}
 
 	res.World = util.ConvertToUint8(finalWorld)
+	util.PrintUint8World(res.World)
 	return
 }
 
