@@ -6,12 +6,13 @@ func masterLocal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 	uint16World := util.ConvertToUint16(world)
 
 	dataChannel := make(chan [][]uint16)
-	stopChannel := make(chan int)
 
 	slices := util.CalcSlices(uint16World, len(world), 1)
-	go util.SimulateSlice(slices[0], dataChannel, stopChannel, turns)
-	go updateSliceLocal(s, dataChannel, stopChannel)
-	<-stopChannel
+	stopChannelSim := make(chan int)
+	go util.SimulateSlice(slices[0], dataChannel, stopChannelSim, turns)
+	stopChannelUpdate := make(chan int)
+	go updateSliceLocal(s, dataChannel, stopChannelUpdate)
+	<-stopChannelSim
 
 	return util.ConvertToUint8(s.slice)
 }
