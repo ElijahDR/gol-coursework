@@ -59,7 +59,9 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	fmt.Println("Combining world...")
 	var finalWorld [][]uint16
 	for i, channel := range channels {
+		fmt.Println("Getting world from", i)
 		if i == s.id {
+			fmt.Println("That's me!")
 			finalWorld = append(finalWorld, newSlice...)
 		}
 		data := <-channel
