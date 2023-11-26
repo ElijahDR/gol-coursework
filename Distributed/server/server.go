@@ -113,6 +113,7 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannels := make(map[string]chan int)
 	sendHaloChannel := make(chan haloRegion, 100)
+	s.haloRegions = make(map[int][][]uint16)
 
 	stopChannels["simulator"] = make(chan int)
 	go util.SimulateSlice(s.slice, dataChannel, stopChannels["simulator"], turns)
