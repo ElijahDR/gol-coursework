@@ -71,3 +71,13 @@ type IterateSliceReq struct {
 type IterateSliceRes struct {
 	Slice [][]uint16
 }
+
+type SimulateWorldReq struct {
+	World [][]uint16
+	Turns int
+}
+
+type SimulateWorldRes struct {
+	World          [][]uint16
+	CompletedTurns int
+}
