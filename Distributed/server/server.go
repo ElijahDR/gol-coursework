@@ -76,7 +76,6 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 	res.World = util.ConvertToUint8(finalWorld)
 	s.currentTurn = 0
-	s.haloRegions = nil
 	return
 }
 
@@ -108,6 +107,7 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 
 	res.Slice = s.slice
 	res.CurrentTurn = turns
+	s.haloRegions = make(map[int][][]uint16)
 	return
 }
 
