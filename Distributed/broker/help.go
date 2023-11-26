@@ -1,4 +1,4 @@
-package broker
+package main
 
 func calculateStep(p Params, world [][]byte) [][]uint8 {
 	var newWorld [][]uint8
