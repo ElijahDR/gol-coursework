@@ -39,7 +39,7 @@ func broker(world [][]uint16, p util.Params, n int) [][]uint16 {
 	}
 
 	for i := 0; i < p.Turns; i++ {
-		slices := util.CalcSlices(world, p, n)
+		slices := util.CalcSlices(world, p.ImageHeight, n)
 
 		for id, channel := range channels {
 			go callWorker(id, slices[id], p, channel)

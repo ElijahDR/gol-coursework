@@ -6,6 +6,8 @@ type Params struct {
 	Threads     int
 	ImageWidth  int
 	ImageHeight int
+
+	Type string
 }
 
 // Run starts the processing of Game of Life. It should initialise channels and goroutines.
@@ -38,5 +40,6 @@ func Run(p Params, events chan<- Event, keyPresses <-chan rune) {
 		ioInput:    ioInput,
 	}
 	// distributor(p, distributorChannels, keyPresses)
+	handler(p, distributorChannels, keyPresses)
 	broker_distributor(p, distributorChannels, keyPresses)
 }

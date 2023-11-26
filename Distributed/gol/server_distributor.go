@@ -2,23 +2,10 @@ package gol
 
 import (
 	"flag"
-	"fmt"
 	"net/rpc"
 )
 
-func callBroker(client *rpc.Client, params Params, world [][]uint8) [][]uint8 {
-	fmt.Println(params)
-	request := GolBrokerRequest{
-		Params: params,
-		World:  world,
-	}
-	response := new(GolBrokerResponse)
-	client.Call("GolCommands.GOLBroker", request, response)
-
-	return response.World
-}
-
-func broker_distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
+func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune) {
 
 	// TODO: Create a 2D slice to store the world.
 
@@ -31,7 +18,14 @@ func broker_distributor(p Params, c distributorChannels, keyPresses <-chan rune)
 	client, _ := rpc.Dial("tcp", server)
 	defer client.Close()
 
-	world = callBroker(client, p, world)
+	request := GolRequest{
+		World: world,
+		Turns: p.Turns,
+	}
+	response := new(GolResponse)
+	client.Call("GolCommands.RunGOL", request, response)
+
+	world = response.World
 
 	immutableWorld := makeImmutableMatrix(world)
 

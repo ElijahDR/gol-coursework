@@ -97,7 +97,6 @@ func writePGM(c distributorChannels, world [][]uint8) {
 func distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
 
 	// TODO: Create a 2D slice to store the world.
-	var world [][]uint8
 
 	turn := 0
 
@@ -108,6 +107,7 @@ func distributor(p Params, c distributorChannels, keyPresses <-chan rune) {
 	// }
 	// var inp := c.ioInput
 
+	world := readWorld(p, c)
 	c.ioCommand <- ioInput
 	filename := fmt.Sprint(p.ImageWidth, "x", p.ImageHeight)
 	// fmt.Println(filename)
