@@ -10,10 +10,10 @@ import (
 	"uk.ac.bris.cs/gameoflife/util"
 )
 
-var PARALLEL = true
-
-//
 func (g *GolCommands) GOLWorker(req GolWorkerRequest, res *GolWorkerResponse) (err error) {
+	if err != nil {
+		fmt.Println(err)
+	}
 	slice := req.Slice
 
 	var data [][]uint16
@@ -40,7 +40,6 @@ func (g *GolCommands) GOLWorker(req GolWorkerRequest, res *GolWorkerResponse) (e
 	}
 
 	res.Slice = data
-
 	return
 }
 
