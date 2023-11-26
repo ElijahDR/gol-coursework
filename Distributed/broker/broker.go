@@ -180,7 +180,7 @@ func broker(world [][]uint16, p Params, n int) [][]uint16 {
 func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 	rows := calcRows(p, n)
 	start := 0
-	fmt.Println("Rows:", rows)
+	// fmt.Println("Rows:", rows)
 	var slices [][][]uint16
 	for i := 0; i < n; i++ {
 		var slice [][]uint16
@@ -198,7 +198,7 @@ func calcSlices(world [][]uint16, p Params, n int) [][][]uint16 {
 			slice = append(slice, world[start-1:start+rows[i]+1]...)
 		}
 		slices = append(slices, slice)
-		fmt.Println(slices)
+		// fmt.Println(slices)
 		start += rows[i]
 	}
 
