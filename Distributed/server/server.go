@@ -145,6 +145,7 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 		case <-stopChannel:
 			break
 		default:
+			fmt.Println(s.haloRegions, haloTurn)
 			if len(s.haloRegions[haloTurn]) == 2 {
 				receiveHaloChannel <- s.haloRegions[s.currentTurn]
 				s.haloLock.Lock()
