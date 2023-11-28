@@ -46,7 +46,7 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 	for i, slice := range slices {
 		if i == s.id {
 			s.slice = slice
-			runHaloExchange(s, turns, channels[i])
+			go runHaloExchange(s, turns, channels[i])
 			continue
 		}
 		go callHaloExchange(i, slice, turns, channels[i])
@@ -73,16 +73,16 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
 
-	stopChannels["simulator"] = make(chan int, 1)
+	stopChannels["simulator"] = make(chan int)
 	go util.SimulateSliceHalo(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
 
-	stopChannels["sliceUpdater"] = make(chan int, 1)
+	stopChannels["sliceUpdater"] = make(chan int)
 	go updateSliceHalo(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
 
-	stopChannels["sendHaloRegions"] = make(chan int, 1)
+	stopChannels["sendHaloRegions"] = make(chan int)
 	go sendHaloRegions(s, sendHaloChannel, stopChannels["sendHaloRegions"])
 
-	stopChannels["receiveHaloRegions"] = make(chan int, 1)
+	stopChannels["receiveHaloRegions"] = make(chan int)
 	go receiveHaloRegions(s, receiveHaloChannel, stopChannels["receiveHaloRegions"])
 
 	fmt.Println("Waiting for finish...")
