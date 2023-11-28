@@ -199,18 +199,20 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 		workerChannels[i] = make(chan [][]uint16, 2)
 	}
 
+	workingSlice := slice
+
 	for i := 0; i < turns; i++ {
 		select {
 		case <-stopChannel:
-			return slice
+			return workingSlice
 		default:
 			if i > 0 {
-				slice = append([][]uint16{slice[len(slice)-1]}, slice...)
-				slice = append(slice, slice[0])
+				workingSlice = append([][]uint16{workingSlice[len(workingSlice)-1]}, workingSlice...)
+				workingSlice = append(workingSlice, workingSlice[0])
 			}
 			currentY := 1
 			for j := 0; j < nThreads; j++ {
-				go SliceWorker(currentY, currentY+startingY[j], slice, workerChannels[j])
+				go SliceWorker(currentY, currentY+startingY[j], workingSlice, workerChannels[j])
 				currentY += startingY[j]
 			}
 
@@ -221,8 +223,8 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 			}
 
 			PrintUint16World(data)
+			workingSlice = data
 			dataChannel <- data
-			slice = data
 		}
 	}
 
