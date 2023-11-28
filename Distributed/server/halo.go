@@ -10,6 +10,7 @@ import (
 func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes) (err error) {
 	s.slice = req.Slice
 	turns := req.Turns
+	s.totalTurns = turns
 	fmt.Println("Running Halo Exchange...")
 
 	// finalChannel := make(chan [][]uint16, 1)
