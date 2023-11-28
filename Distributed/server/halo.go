@@ -144,13 +144,13 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 			break
 		default:
 			if len(s.haloRegions[haloTurn]) == 2 {
-				fmt.Println("Sending halo regions down channel to worker...")
+				fmt.Println("Sending halo regions down channel to worker...", haloTurn)
 				receiveHaloChannel <- s.haloRegions[haloTurn]
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)
 				s.haloLock.Unlock()
 				haloTurn++
-				fmt.Println("Finished sending halo regions down channel to worker...")
+				fmt.Println("Finished sending halo regions down channel to worker...", haloTurn)
 			}
 		}
 	}
