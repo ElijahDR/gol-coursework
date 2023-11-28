@@ -7,6 +7,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"net/rpc"
+
+	"uk.ac.bris.cs/gameoflife/util"
 )
 
 var NODES = []string{
@@ -53,6 +55,8 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// }
 	res.World = masterHaloExchange(s, world, turns)
 	// res.World = masterNormal(s, world, turns)
+
+	util.PrintUint8World(res.World)
 
 	s.currentTurn = 0
 	return
