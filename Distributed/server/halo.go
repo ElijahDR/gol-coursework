@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -229,20 +230,20 @@ func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType in
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {
 	destIP := NODES[id] + ":8030"
 	fmt.Println("Asking", destIP, "to partake in Halo Exchange")
-	fmt.Println(CONNECTIONS)
+	// fmt.Println(CONNECTIONS)
 
-	// client, err := rpc.Dial("tcp", destIP)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// defer client.Close()
+	client, err := rpc.Dial("tcp", destIP)
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
 	request := HaloExchangeReq{
 		Slice: slice,
 		Turns: turns,
 	}
 	response := new(HaloExchangeRes)
-	client := CONNECTIONS[id]
-	fmt.Println(id)
+	// client := CONNECTIONS[id]
+	// fmt.Println(id)
 	client.Call("ServerCommands.HaloExchange", request, response)
 
 	fmt.Println(destIP, "returned its final slice")

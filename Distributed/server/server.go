@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"net/rpc"
+	"os"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -112,6 +114,9 @@ func main() {
 	if args.ip == "127.0.0.1" {
 		fmt.Println("Running as 127.0.0.1, did you set this correct?")
 	}
+	reader := bufio.NewReader(os.Stdin)
+	blank, _ := reader.ReadString('\n')
+	fmt.Println(blank)
 
 	CONNECTIONS = make([]*rpc.Client, len(NODES))
 	id := -1
