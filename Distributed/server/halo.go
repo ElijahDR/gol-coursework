@@ -17,7 +17,7 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	go runHaloExchange(s, turns, finalChannel)
 	<-finalChannel
 	res.Slice = s.slice
-	util.PrintUint16World(res.Slice)
+	// util.PrintUint16World(res.Slice)
 	res.CurrentTurn = turns
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
@@ -47,7 +47,7 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 
 	for i, slice := range slices {
 		fmt.Println("Slice given to", i)
-		util.PrintUint16World(slice)
+		// util.PrintUint16World(slice)
 		if i == s.id {
 			s.slice = slice
 			go runHaloExchange(s, turns, channels[i])
@@ -63,7 +63,7 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 		newSlice := <-channel
 
 		fmt.Println("Slice from", i)
-		util.PrintUint16World(newSlice)
+		// util.PrintUint16World(newSlice)
 		finalWorld = append(finalWorld, newSlice...)
 	}
 
@@ -126,7 +126,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn+1)
 			s.mu.Lock()
 			s.slice = newSlice
-			util.PrintUint16World(s.slice)
+			// util.PrintUint16World(s.slice)
 			s.currentTurn++
 			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
 			newRegion := haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
@@ -238,6 +238,6 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 	client.Call("ServerCommands.HaloExchange", request, response)
 
 	fmt.Println(destIP, "returned its final slice")
-	util.PrintUint16World(response.Slice)
+	// util.PrintUint16World(response.Slice)
 	channel <- response.Slice
 }
