@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"math"
 	"math/bits"
 )
@@ -175,8 +174,8 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 			// fmt.Println("Length of working slice After:", len(workingSlice))
 		}
 
-		fmt.Println("Before Work:")
-		PrintUint16World(workingSlice)
+		// fmt.Println("Before Work:")
+		// PrintUint16World(workingSlice)
 		currentY := 1
 		for j := 0; j < nThreads; j++ {
 			go SliceWorker(currentY, currentY+startingY[j], workingSlice, workerChannels[j])
@@ -191,8 +190,8 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 		// fmt.Println("Finished turn", i, "in SimulateSliceHalo")
 		workingSlice = data
 
-		fmt.Println("After Work:")
-		PrintUint16World(workingSlice)
+		// fmt.Println("After Work:")
+		// PrintUint16World(workingSlice)
 		dataChannel <- workingSlice
 		// PrintUint16World(workingSlice)
 	}

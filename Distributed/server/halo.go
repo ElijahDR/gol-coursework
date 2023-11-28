@@ -131,9 +131,9 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			newRegion := haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
 			sendHaloChannel <- newRegion
 			s.mu.Unlock()
-			fmt.Println("######### TURN", s.currentTurn, "#########")
-			util.PrintUint16World(s.slice)
-			fmt.Println()
+			// fmt.Println("######### TURN", s.currentTurn, "#########")
+			// util.PrintUint16World(s.slice)
+			// fmt.Println()
 			// fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn)
 		default:
 		}
@@ -187,8 +187,8 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	}
 	bottomID := ((s.id - 1) + (len(NODES))) % (len(NODES))
 	topID := (s.id + 1) % len(NODES)
-	fmt.Println("Halo Regions Sent:")
-	util.PrintUint16World(region.regions)
+	// fmt.Println("Halo Regions Sent:")
+	// util.PrintUint16World(region.regions)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "for turn", region.currentTurn)
 	request := HaloRegionReq{
