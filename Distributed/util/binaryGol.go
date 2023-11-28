@@ -159,32 +159,30 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 	}
 
 	for i := 0; i < turns; i++ {
-		select {
-		case <-stopChannel:
+		if len(stopChannel) > 1 {
 			break
-		default:
-			if i > 0 {
-				fmt.Println("Waiting for halo channels for turn", i, "...")
-				newRegions := <-receiveHaloChannel
-				fmt.Println("Received for halo channels for turn", i, "!")
-				slice = append([][]uint16{newRegions[0]}, slice...)
-				slice = append(slice, newRegions[1])
-			}
-
-			currentY := 1
-			for i := 0; i < nThreads; i++ {
-				go SliceWorker(currentY, currentY+startingY[i], slice, workerChannels[i])
-				currentY += startingY[i]
-			}
-
-			for i := 0; i < nThreads; i++ {
-				d := <-workerChannels[i]
-				data = append(data, d...)
-			}
-
-			dataChannel <- data
-			slice = data
 		}
+		if i > 0 {
+			fmt.Println("Waiting for halo channels for turn", i, "...")
+			newRegions := <-receiveHaloChannel
+			fmt.Println("Received for halo channels for turn", i, "!")
+			slice = append([][]uint16{newRegions[0]}, slice...)
+			slice = append(slice, newRegions[1])
+		}
+
+		currentY := 1
+		for i := 0; i < nThreads; i++ {
+			go SliceWorker(currentY, currentY+startingY[i], slice, workerChannels[i])
+			currentY += startingY[i]
+		}
+
+		for i := 0; i < nThreads; i++ {
+			d := <-workerChannels[i]
+			data = append(data, d...)
+		}
+
+		dataChannel <- data
+		slice = data
 	}
 
 	stopChannel <- 1
