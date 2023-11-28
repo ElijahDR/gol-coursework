@@ -46,6 +46,8 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 	}
 
 	for i, slice := range slices {
+		fmt.Println("Slice given to", i)
+		util.PrintUint16World(slice)
 		if i == s.id {
 			s.slice = slice
 			go runHaloExchange(s, turns, channels[i])
@@ -58,8 +60,11 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 	var finalWorld [][]uint16
 	for i, channel := range channels {
 		fmt.Println("Getting world from", i)
-		data := <-channel
-		finalWorld = append(finalWorld, data...)
+		newSlice := <-channel
+
+		fmt.Println("Slice from", i)
+		util.PrintUint16World(newSlice)
+		finalWorld = append(finalWorld, newSlice...)
 	}
 
 	s.haloRegions = make(map[int][][]uint16)
