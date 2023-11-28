@@ -93,6 +93,10 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	<-stopChannels["simulator"]
 	fmt.Println("Finished")
 
+	for _, stopChannel := range stopChannels {
+		stopChannel <- 1
+	}
+
 	return s.slice
 }
 
