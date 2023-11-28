@@ -123,7 +123,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			fmt.Println("Update Slice Stopped...")
 			break
 		case newSlice := <-dataChannel:
-			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn)
+			// fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn)
 			s.mu.Lock()
 			s.slice = newSlice
 			s.currentTurn++
@@ -131,10 +131,10 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			newRegion := haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
 			sendHaloChannel <- newRegion
 			s.mu.Unlock()
-			fmt.Println("######### TURN", s.currentTurn+1, "#########")
+			fmt.Println("######### TURN", s.currentTurn, "#########")
 			util.PrintUint16World(s.slice)
 			fmt.Println()
-			fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn)
+			// fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn)
 		default:
 		}
 	}
@@ -162,7 +162,7 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 			break
 		default:
 			if len(s.haloRegions[haloTurn]) == 2 {
-				fmt.Println("Sending halo regions down channel to worker...", haloTurn)
+				// fmt.Println("Sending halo regions down channel to worker...", haloTurn)
 				var regions [][]uint16
 				for i := 0; i < len(s.haloRegions[haloTurn]); i++ {
 					regions = append(regions, s.haloRegions[haloTurn][i])
@@ -174,7 +174,7 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 				s.haloLock.Unlock()
 				haloTurn++
 				// fmt.Println("After delete:", regions)
-				fmt.Println("Finished sending halo regions down channel to worker...", haloTurn-1)
+				// fmt.Println("Finished sending halo regions down channel to worker...", haloTurn-1)
 			}
 		}
 	}
