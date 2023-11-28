@@ -17,6 +17,7 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	go runHaloExchange(s, turns, finalChannel)
 	<-finalChannel
 	res.Slice = s.slice
+	util.PrintUint16World(res.Slice)
 	res.CurrentTurn = turns
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
