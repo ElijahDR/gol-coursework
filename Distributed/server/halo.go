@@ -187,6 +187,8 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	}
 	bottomID := ((s.id - 1) + (len(NODES))) % (len(NODES))
 	topID := (s.id + 1) % len(NODES)
+	fmt.Println("Halo Regions Sent:")
+	util.PrintUint16World(region.regions)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "for turn", region.currentTurn)
 	request := HaloRegionReq{
