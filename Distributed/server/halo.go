@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -110,10 +109,11 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 }
 
 func makeSendHalo(id int, req HaloRegionReq) {
-	client, _ := rpc.Dial("tcp", NODES[id]+":8030")
-	defer client.Close()
+	// client, _ := rpc.Dial("tcp", NODES[id]+":8030")
+	// defer client.Close()
+
 	response := new(HaloRegionRes)
-	client.Call("ServerCommands.ReceiveHaloRegions", req, response)
+	CONNECTIONS[id].Call("ServerCommands.ReceiveHaloRegions", req, response)
 }
 
 func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel chan int, sendHaloChannel chan haloRegion) {
@@ -229,17 +229,17 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 	destIP := NODES[id] + ":8030"
 	fmt.Println("Asking", destIP, "to partake in Halo Exchange")
 
-	client, err := rpc.Dial("tcp", destIP)
-	if err != nil {
-		panic(err)
-	}
-	defer client.Close()
+	// client, err := rpc.Dial("tcp", destIP)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// defer client.Close()
 	request := HaloExchangeReq{
 		Slice: slice,
 		Turns: turns,
 	}
 	response := new(HaloExchangeRes)
-	client.Call("ServerCommands.HaloExchange", request, response)
+	CONNECTIONS[id].Call("ServerCommands.HaloExchange", request, response)
 
 	fmt.Println(destIP, "returned its final slice")
 	// util.PrintUint16World(response.Slice)

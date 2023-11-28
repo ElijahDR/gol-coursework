@@ -17,6 +17,8 @@ var NODES = []string{
 	"44.208.47.178",
 }
 
+var CONNECTIONS []*rpc.Client
+
 type haloRegion struct {
 	regions     [][]uint16
 	currentTurn int
@@ -106,10 +108,16 @@ func main() {
 	if args.ip == "127.0.0.1" {
 		fmt.Println("Running as 127.0.0.1, did you set this correct?")
 	}
+
+	CONNECTIONS = make([]*rpc.Client, len(NODES))
 	id := -1
 	for i, ip := range NODES {
 		if ip == args.ip {
 			id = i
+		} else {
+			client, _ := rpc.Dial("tcp", NODES[i]+":8030")
+			CONNECTIONS[i] = client
+			defer client.Close()
 		}
 	}
 	if id == -1 {
