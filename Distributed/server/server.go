@@ -121,14 +121,6 @@ func main() {
 	for i, ip := range NODES {
 		if ip == args.ip {
 			id = i
-		} else {
-			for {
-				client, _ := rpc.Dial("tcp", NODES[i]+":8030")
-				CONNECTIONS[i] = client
-				if client != nil {
-					break
-				}
-			}
 		}
 	}
 	fmt.Println(CONNECTIONS)
@@ -139,6 +131,20 @@ func main() {
 	listener, _ := net.Listen("tcp", ":"+args.port)
 	fmt.Println("I am", args.ip+":"+args.port)
 	defer listener.Close()
+
+	for i, ip := range NODES {
+		if i == id {
+			continue
+		}
+		for {
+			client, _ := rpc.Dial("tcp", ip+":8030")
+			CONNECTIONS[i] = client
+			if client != nil {
+				break
+			}
+		}
+	}
+
 	rpc.Accept(listener)
 
 	for _, conn := range CONNECTIONS {
