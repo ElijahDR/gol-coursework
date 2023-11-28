@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"net/rpc"
@@ -134,6 +135,11 @@ func main() {
 	if id == -1 {
 		panic("ID not in list of nodes, please update")
 	}
+	rpc.Register(&ServerCommands{id: id})
+	listener, _ := net.Listen("tcp", ":"+args.port)
+	fmt.Println("I am", args.ip+":"+args.port)
+	defer listener.Close()
+	rpc.Accept(listener)
 
 	for _, conn := range CONNECTIONS {
 		conn.Close()
