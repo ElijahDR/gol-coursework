@@ -123,7 +123,6 @@ func main() {
 			id = i
 		}
 	}
-	fmt.Println(CONNECTIONS)
 	if id == -1 {
 		panic("ID not in list of nodes, please update")
 	}
@@ -144,6 +143,7 @@ func main() {
 			}
 		}
 	}
+	fmt.Println(CONNECTIONS)
 
 	rpc.Accept(listener)
 
