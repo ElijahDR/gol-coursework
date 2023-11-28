@@ -49,9 +49,9 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 		if i == s.id {
 			s.slice = slice
 			go runHaloExchange(s, turns, channels[i])
-			continue
+		} else {
+			go callHaloExchange(i, slice, turns, channels[i])
 		}
-		go callHaloExchange(i, slice, turns, channels[i])
 	}
 
 	fmt.Println("Combining world...")
@@ -69,28 +69,29 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 
 func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16) [][]uint16 {
 	dataChannel := make(chan [][]uint16, 1)
-	stopChannels := make(map[string]chan int, 1)
+	stopChannels := make(map[string]chan int)
 	sendHaloChannel := make(chan haloRegion, 6)
 	receiveHaloChannel := make(chan [][]uint16)
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
 
-	stopChannels["simulator"] = make(chan int)
+	stopChannels["simulator"] = make(chan int, 1)
 	go util.SimulateSliceHalo(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
 
-	stopChannels["sliceUpdater"] = make(chan int)
+	stopChannels["sliceUpdater"] = make(chan int, 1)
 	go updateSliceHalo(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
 
-	stopChannels["sendHaloRegions"] = make(chan int)
+	stopChannels["sendHaloRegions"] = make(chan int, 1)
 	go sendHaloRegions(s, sendHaloChannel, stopChannels["sendHaloRegions"])
 
-	stopChannels["receiveHaloRegions"] = make(chan int)
+	stopChannels["receiveHaloRegions"] = make(chan int, 1)
 	go receiveHaloRegions(s, receiveHaloChannel, stopChannels["receiveHaloRegions"])
 
 	fmt.Println("Waiting for finish...")
 	<-stopChannels["simulator"]
 
-	for _, stopChannel := range stopChannels {
+	for name, stopChannel := range stopChannels {
+		fmt.Println("Stopping", name)
 		stopChannel <- 1
 	}
 
