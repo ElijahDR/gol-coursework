@@ -155,9 +155,11 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 
 	workerChannels := make([]chan [][]uint16, nThreads)
 	for i := 0; i < nThreads; i++ {
-		workerChannels[i] = make(chan [][]uint16, 2)
+		workerChannels[i] = make(chan [][]uint16)
 	}
 
+	workingSlice := slice
+	PrintUint16World(workingSlice)
 	for i := 0; i < turns; i++ {
 		if len(stopChannel) > 1 {
 			break
@@ -166,13 +168,13 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 			fmt.Println("Waiting for halo channels for turn", i, "...")
 			newRegions := <-receiveHaloChannel
 			fmt.Println("Received for halo channels for turn", i, "!")
-			slice = append([][]uint16{newRegions[0]}, slice...)
-			slice = append(slice, newRegions[1])
+			workingSlice = append([][]uint16{newRegions[0]}, workingSlice...)
+			workingSlice = append(workingSlice, newRegions[1])
 		}
 
 		currentY := 1
 		for j := 0; j < nThreads; j++ {
-			go SliceWorker(currentY, currentY+startingY[j], slice, workerChannels[j])
+			go SliceWorker(currentY, currentY+startingY[j], workingSlice, workerChannels[j])
 			currentY += startingY[j]
 		}
 
@@ -183,7 +185,8 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 
 		fmt.Println("Finished turn", i, "in SimulateSliceHalo")
 		dataChannel <- data
-		slice = data
+		workingSlice = data
+		PrintUint16World(workingSlice)
 	}
 
 	stopChannel <- 1
