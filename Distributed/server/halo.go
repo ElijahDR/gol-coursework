@@ -242,6 +242,7 @@ func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint
 	}
 	response := new(HaloExchangeRes)
 	client := CONNECTIONS[id]
+	fmt.Println(id)
 	client.Call("ServerCommands.HaloExchange", request, response)
 
 	fmt.Println(destIP, "returned its final slice")
