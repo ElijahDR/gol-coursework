@@ -4,6 +4,8 @@ import (
 	"flag"
 	"fmt"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"net/rpc"
 )
 
@@ -93,6 +95,9 @@ func checkAlive(myID int, checkID int) {
 
 func main() {
 	var args ServerArgs
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 	flag.StringVar(&args.port, "port", "8030", "Port to listen on")
 	flag.StringVar(&args.ip, "ip", "127.0.0.1", "IP of this machine")
 	// pAddr := flag.String("port", "8031", "Port to listen on")
