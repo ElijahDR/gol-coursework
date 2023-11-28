@@ -69,7 +69,7 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 
 func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16) [][]uint16 {
 	dataChannel := make(chan [][]uint16, 1)
-	stopChannels := make(map[string]chan int)
+	stopChannels := make(map[string]chan int, 1)
 	sendHaloChannel := make(chan haloRegion, 6)
 	receiveHaloChannel := make(chan [][]uint16)
 	s.haloRegions = make(map[int][][]uint16)
@@ -89,12 +89,12 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 
 	fmt.Println("Waiting for finish...")
 	<-stopChannels["simulator"]
-	fmt.Println("Finished")
 
 	for _, stopChannel := range stopChannels {
 		stopChannel <- 1
 	}
 
+	fmt.Println("Finished")
 	finalChannel <- s.slice
 	return s.slice
 }
