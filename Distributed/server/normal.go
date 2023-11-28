@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
@@ -26,12 +27,12 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 
 		newSlice := iterateSlice(s.slice)
 
-		// fmt.Println("Combining world...")
+		fmt.Println("Combining world...")
 		var newWorld [][]uint16
 		for i, channel := range channels {
-			// fmt.Println("Getting world from", i)
+			fmt.Println("Getting world from", i)
 			if i == s.id {
-				// fmt.Println("That's me!")
+				fmt.Println("That's me!")
 				newWorld = append(newWorld, newSlice...)
 			} else {
 				data := <-channel
@@ -65,7 +66,8 @@ func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
 
 func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes) (err error) {
 	slice := req.Slice
-	res.Slice = iterateSlice(slice)
+	newSlice := iterateSlice(slice)
+	res.Slice = newSlice
 	return
 }
 

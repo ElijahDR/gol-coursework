@@ -12,9 +12,10 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	turns := req.Turns
 	fmt.Println("Running Halo Exchange...")
 
+	finalChannel := make(chan [][]uint8)
 	runHaloExchange(s, turns)
 
-	res.Slice = s.slice
+	res.Slice = <-finalChannel
 	res.CurrentTurn = turns
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
