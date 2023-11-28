@@ -13,9 +13,9 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	s.totalTurns = turns
 	fmt.Println("Running Halo Exchange...")
 
-	// finalChannel := make(chan [][]uint16, 1)
+	finalChannel := make(chan [][]uint16, 1)
 
-	res.Slice = runHaloExchange(s, turns)
+	res.Slice = runHaloExchange(s, turns, finalChannel)
 	res.CurrentTurn = turns
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
@@ -36,34 +36,28 @@ func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRe
 func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 	uint16World := util.ConvertToUint16(world)
 
-	slices := util.CalcSlices(uint16World, len(world), len(NODES)-len(blacklist))
+	slices := util.CalcSlices(uint16World, len(world), len(NODES))
 
 	channels := make([]chan [][]uint16, len(NODES))
 	for i := 0; i < len(NODES); i++ {
-		channels[i] = make(chan [][]uint16, 2)
+		channels[i] = make(chan [][]uint16)
 	}
 
 	for i, slice := range slices {
 		if i == s.id {
 			s.slice = slice
+			runHaloExchange(s, turns, channels[i])
 			continue
 		}
 		go callHaloExchange(i, slice, turns, channels[i])
 	}
 
-	newSlice := runHaloExchange(s, turns)
-
 	fmt.Println("Combining world...")
 	var finalWorld [][]uint16
 	for i, channel := range channels {
 		fmt.Println("Getting world from", i)
-		if i == s.id {
-			fmt.Println("That's me!")
-			finalWorld = append(finalWorld, newSlice...)
-		} else {
-			data := <-channel
-			finalWorld = append(finalWorld, data...)
-		}
+		data := <-channel
+		finalWorld = append(finalWorld, data...)
 	}
 
 	s.haloRegions = make(map[int][][]uint16)
@@ -71,7 +65,7 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 	return util.ConvertToUint8(finalWorld)
 }
 
-func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
+func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16) [][]uint16 {
 	dataChannel := make(chan [][]uint16, 1)
 	stopChannels := make(map[string]chan int)
 	sendHaloChannel := make(chan haloRegion, 6)
@@ -99,6 +93,7 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 		stopChannel <- 1
 	}
 
+	finalChannel <- s.slice
 	return s.slice
 }
 
