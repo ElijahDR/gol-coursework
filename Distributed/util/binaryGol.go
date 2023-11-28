@@ -246,6 +246,7 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 
 	// PrintUint16World(slice[startY:endY])
 	// fmt.Println(startY, endY)
+	fmt.Println("Length of slice given to worker:", len(slice))
 	var newSlice [][]uint16
 	for y := startY; y < endY; y++ {
 		var newLine []uint16
@@ -294,5 +295,7 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 	}
 
 	// PrintUint16World(newSlice)
+
+	fmt.Println("Length of slice given to worker:", len(newSlice))
 	c <- newSlice
 }
