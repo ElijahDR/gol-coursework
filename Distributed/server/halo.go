@@ -46,7 +46,7 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 	}
 
 	for i, slice := range slices {
-		fmt.Println("Slice given to", i)
+		// fmt.Println("Slice given to", i)
 		// util.PrintUint16World(slice)
 		if i == s.id {
 			s.slice = slice
@@ -62,14 +62,14 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 		fmt.Println("Getting world from", i)
 		newSlice := <-channel
 
-		fmt.Println("Slice from", i)
+		// fmt.Println("Slice from", i)
 		// util.PrintUint16World(newSlice)
 		finalWorld = append(finalWorld, newSlice...)
 	}
 
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
-	fmt.Println("Final World Height:", len(finalWorld))
+	// fmt.Println("Final World Height:", len(finalWorld))
 	return util.ConvertToUint8(finalWorld)
 }
 
@@ -93,7 +93,7 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 	stopChannels["receiveHaloRegions"] = make(chan int)
 	go receiveHaloRegions(s, receiveHaloChannel, stopChannels["receiveHaloRegions"])
 
-	fmt.Println("Waiting for finish...")
+	// fmt.Println("Waiting for finish...")
 	<-stopChannels["simulator"]
 
 	for name, stopChannel := range stopChannels {
@@ -104,7 +104,7 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 		stopChannel <- 1
 	}
 
-	fmt.Println("Finished")
+	// fmt.Println("Finished")
 	finalChannel <- s.slice
 	return s.slice
 }
@@ -165,14 +165,14 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 				for i := 0; i < len(s.haloRegions[haloTurn]); i++ {
 					regions = append(regions, s.haloRegions[haloTurn][i])
 				}
-				fmt.Println("Before delete:", regions)
+				// fmt.Println("Before delete:", regions)
 				receiveHaloChannel <- regions
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)
 				s.haloLock.Unlock()
 				haloTurn++
-				fmt.Println("After delete:", regions)
-				fmt.Println("Finished sending halo regions down channel to worker...", haloTurn)
+				// fmt.Println("After delete:", regions)
+				fmt.Println("Finished sending halo regions down channel to worker...", haloTurn-1)
 			}
 		}
 	}

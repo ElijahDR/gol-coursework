@@ -1,7 +1,6 @@
 package util
 
 import (
-	"fmt"
 	"math"
 	"math/bits"
 )
@@ -151,7 +150,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 
 	nThreads := int(math.Min(float64(sliceSize), 8))
 	startingY := CalcSharing(sliceSize-2, nThreads)
-	fmt.Println(startingY)
+	// fmt.Println(startingY)
 
 	workerChannels := make([]chan [][]uint16, nThreads)
 	for i := 0; i < nThreads; i++ {
@@ -159,20 +158,20 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 	}
 
 	workingSlice := slice
-	PrintUint16World(workingSlice)
+	// PrintUint16World(workingSlice)
 	for i := 0; i < turns; i++ {
 		var data [][]uint16
 		if len(stopChannel) > 1 {
 			break
 		}
 		if i > 0 {
-			fmt.Println("Waiting for halo channels for turn", i, "...")
+			// fmt.Println("Waiting for halo channels for turn", i, "...")
 			newRegions := <-receiveHaloChannel
-			fmt.Println("Received for halo channels for turn", i, "!")
-			fmt.Println("Length of working slice before:", len(workingSlice))
+			// fmt.Println("Received for halo channels for turn", i, "!")
+			// fmt.Println("Length of working slice before:", len(workingSlice))
 			workingSlice = append([][]uint16{newRegions[0]}, workingSlice...)
 			workingSlice = append(workingSlice, newRegions[1])
-			fmt.Println("Length of working slice After:", len(workingSlice))
+			// fmt.Println("Length of working slice After:", len(workingSlice))
 		}
 
 		currentY := 1
@@ -186,10 +185,10 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 			data = append(data, d...)
 		}
 
-		fmt.Println("Finished turn", i, "in SimulateSliceHalo")
+		// fmt.Println("Finished turn", i, "in SimulateSliceHalo")
 		workingSlice = data
 		dataChannel <- workingSlice
-		PrintUint16World(workingSlice)
+		// PrintUint16World(workingSlice)
 	}
 
 	stopChannel <- 1
@@ -246,7 +245,7 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 
 	// PrintUint16World(slice[startY:endY])
 	// fmt.Println(startY, endY)
-	fmt.Println("Length of slice given to worker:", len(slice))
+	// fmt.Println("Length of slice given to worker:", len(slice))
 	var newSlice [][]uint16
 	for y := startY; y < endY; y++ {
 		var newLine []uint16
@@ -296,6 +295,6 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 
 	// PrintUint16World(newSlice)
 
-	fmt.Println("Length of slice returned from worker:", len(newSlice))
+	// fmt.Println("Length of slice returned from worker:", len(newSlice))
 	c <- newSlice
 }
