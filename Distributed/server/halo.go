@@ -65,6 +65,8 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 		}
 	}
 
+	s.haloRegions = make(map[int][][]uint16)
+	s.currentTurn = 0
 	return util.ConvertToUint8(finalWorld)
 }
 
