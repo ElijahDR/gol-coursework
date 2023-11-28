@@ -47,7 +47,8 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// } else {
 	// 	res.World = masterHaloExchange(s, world, turns)
 	// }
-	res.World = masterHaloExchange(s, world, turns)
+	// res.World = masterHaloExchange(s, world, turns)
+	res.World = masterNormal(s, world, turns)
 
 	s.currentTurn = 0
 	return
