@@ -39,13 +39,14 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	}
 
 	fmt.Println("Server Received Request:", width, "x", height, "for", req.Turns, "turns")
-	if height < 64 && width < 64 {
-		res.World = masterLocal(s, world, turns)
-	} else if height < 512 && width < 512 {
-		res.World = masterNormal(s, world, turns)
-	} else {
-		res.World = masterHaloExchange(s, world, turns)
-	}
+	// if height < 64 && width < 64 {
+	// 	res.World = masterLocal(s, world, turns)
+	// } else if height < 512 && width < 512 {
+	// 	res.World = masterNormal(s, world, turns)
+	// } else {
+	// 	res.World = masterHaloExchange(s, world, turns)
+	// }
+	res.World = masterHaloExchange(s, world, turns)
 
 	s.currentTurn = 0
 	return
