@@ -229,6 +229,7 @@ func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType in
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {
 	destIP := NODES[id] + ":8030"
 	fmt.Println("Asking", destIP, "to partake in Halo Exchange")
+	fmt.Println(CONNECTIONS)
 
 	// client, err := rpc.Dial("tcp", destIP)
 	// if err != nil {

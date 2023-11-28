@@ -117,7 +117,6 @@ func main() {
 		} else {
 			client, _ := rpc.Dial("tcp", NODES[i]+":8030")
 			CONNECTIONS[i] = client
-			defer client.Close()
 		}
 	}
 	fmt.Println(CONNECTIONS)
@@ -129,4 +128,8 @@ func main() {
 	fmt.Println("I am", args.ip+":"+args.port)
 	defer listener.Close()
 	rpc.Accept(listener)
+
+	for _, conn := range CONNECTIONS {
+		conn.Close()
+	}
 }
