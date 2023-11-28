@@ -219,6 +219,7 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 				data = append(data, d...)
 			}
 
+			PrintUint16World(data)
 			dataChannel <- data
 			slice = data
 		}
