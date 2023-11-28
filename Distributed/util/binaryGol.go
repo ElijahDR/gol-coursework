@@ -181,6 +181,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 			data = append(data, d...)
 		}
 
+		fmt.Println("Finished turn", i, "in SimulateSliceHalo")
 		dataChannel <- data
 		slice = data
 	}
