@@ -77,6 +77,7 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	sendHaloChannel := make(chan haloRegion, 100)
 	receiveHaloChannel := make(chan [][]uint16, 100)
 	s.haloRegions = make(map[int][][]uint16)
+	s.currentTurn = 0
 
 	stopChannels["simulator"] = make(chan int, 5)
 	go util.SimulateSliceHalo(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
@@ -114,12 +115,14 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 		case <-stopChannel:
 			break
 		case newSlice := <-dataChannel:
+			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn+1)
 			s.mu.Lock()
 			s.slice = newSlice
 			s.currentTurn++
 			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
-			sendHaloChannel <- haloRegion{regions: regions, currentTurn: s.currentTurn}
+			sendHaloChannel <- haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
 			s.mu.Unlock()
+			fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn+1)
 		default:
 		}
 	}
@@ -150,7 +153,6 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 				for i := 0; i < len(s.haloRegions[haloTurn]); i++ {
 					regions = append(regions, s.haloRegions[haloTurn][i])
 				}
-
 				receiveHaloChannel <- regions
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)

@@ -173,7 +173,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 		currentY := 1
 		for j := 0; j < nThreads; j++ {
 			go SliceWorker(currentY, currentY+startingY[j], slice, workerChannels[j])
-			currentY += startingY[i]
+			currentY += startingY[j]
 		}
 
 		for j := 0; j < nThreads; j++ {
