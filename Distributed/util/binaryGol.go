@@ -239,7 +239,7 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 	// printRows(slice, y)
 
 	// PrintUint16World(slice[startY:endY])
-	fmt.Println(startY, endY)
+	// fmt.Println(startY, endY)
 	var newSlice [][]uint16
 	for y := startY; y < endY; y++ {
 		var newLine []uint16
