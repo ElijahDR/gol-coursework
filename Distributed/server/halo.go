@@ -122,6 +122,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn+1)
 			s.mu.Lock()
 			s.slice = newSlice
+			util.PrintUint16World(s.slice)
 			s.currentTurn++
 			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
 			newRegion := haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
