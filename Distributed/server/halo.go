@@ -18,6 +18,7 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 	res.CurrentTurn = turns
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
+	fmt.Println("Finished Halo Exchange")
 	return
 }
 
@@ -183,6 +184,7 @@ func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType in
 		s.haloRegions[turn] = [][]uint16{region}
 	}
 	s.haloLock.Unlock()
+	fmt.Println("Current Halo Regions:", s.haloRegions)
 }
 
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {

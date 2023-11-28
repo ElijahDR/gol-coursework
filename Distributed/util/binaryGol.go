@@ -164,6 +164,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 			break
 		default:
 			if i > 0 {
+				fmt.Println("Waiting for halo channels...")
 				newRegions := <-receiveHaloChannel
 				slice = append([][]uint16{newRegions[0]}, slice...)
 				slice = append(slice, newRegions[1])
@@ -237,7 +238,7 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 	nuint16 := len(slice[0])
 	// printRows(slice, y)
 
-	PrintUint16World(slice[startY:endY])
+	// PrintUint16World(slice[startY:endY])
 	fmt.Println(startY, endY)
 	var newSlice [][]uint16
 	for y := startY; y < endY; y++ {
@@ -286,6 +287,6 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 		newSlice = append(newSlice, newLine)
 	}
 
-	PrintUint16World(newSlice)
+	// PrintUint16World(newSlice)
 	c <- newSlice
 }
