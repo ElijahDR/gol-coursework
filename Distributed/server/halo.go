@@ -164,6 +164,7 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 
 func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	if region.currentTurn >= s.totalTurns {
+		fmt.Println("No need for more halo exchange...")
 		return
 	}
 	bottomID := ((s.id - 1) + (len(NODES))) % (len(NODES))
