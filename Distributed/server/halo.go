@@ -127,7 +127,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			s.mu.Lock()
 			s.slice = newSlice
 			s.currentTurn++
-			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
+			regions := append(append([][]uint16{}, s.slice[0]), s.slice[len(s.slice)-1])
 			newRegion := haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
 			sendHaloChannel <- newRegion
 			s.mu.Unlock()
