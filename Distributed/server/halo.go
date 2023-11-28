@@ -146,7 +146,10 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 			if len(s.haloRegions[haloTurn]) == 2 {
 				fmt.Println("Sending halo regions down channel to worker...", haloTurn)
 				var regions [][]uint16
-				copy(s.haloRegions[haloTurn], regions)
+				for i := 0; i < len(s.haloRegions[haloTurn]); i++ {
+					regions = append(regions, s.haloRegions[haloTurn][i])
+				}
+
 				receiveHaloChannel <- regions
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)
