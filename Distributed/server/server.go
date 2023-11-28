@@ -32,6 +32,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	turns := req.Turns
 	height := len(world)
 	width := len(world[0])
+	s.totalTurns = turns
 
 	if turns == 0 {
 		res.World = world

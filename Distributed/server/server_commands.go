@@ -21,6 +21,7 @@ type ServerCommands struct {
 	slice       [][]uint16
 	mu          sync.Mutex
 	currentTurn int
+	totalTurns  int
 	keyPresses  chan rune
 	finished    chan bool
 	haloRegions map[int][][]uint16
