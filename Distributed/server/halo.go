@@ -52,12 +52,12 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 
 	newSlice := runHaloExchange(s, turns)
 
-	// fmt.Println("Combining world...")
+	fmt.Println("Combining world...")
 	var finalWorld [][]uint16
 	for i, channel := range channels {
-		// fmt.Println("Getting world from", i)
+		fmt.Println("Getting world from", i)
 		if i == s.id {
-			// fmt.Println("That's me!")
+			fmt.Println("That's me!")
 			finalWorld = append(finalWorld, newSlice...)
 		} else {
 			data := <-channel
