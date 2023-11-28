@@ -110,6 +110,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 	for {
 		select {
 		case <-stopChannel:
+			fmt.Println("Update Slice Stopped...")
 			break
 		case newSlice := <-dataChannel:
 			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn+1)
@@ -130,6 +131,7 @@ func sendHaloRegions(s *ServerCommands, sendHaloChannel chan haloRegion, stopCha
 	for {
 		select {
 		case <-stopChannel:
+			fmt.Println("Halo Region Sending Stopped...")
 			break
 		case region := <-sendHaloChannel:
 			go makeHaloExchange(s, region)
@@ -143,6 +145,7 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 	for {
 		select {
 		case <-stopChannel:
+			fmt.Println("Halo Region Receiving Stopped...")
 			break
 		default:
 			if len(s.haloRegions[haloTurn]) == 2 {
