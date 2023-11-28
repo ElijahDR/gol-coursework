@@ -164,8 +164,9 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 			break
 		default:
 			if i > 0 {
-				fmt.Println("Waiting for halo channels...")
+				fmt.Println("Waiting for halo channels for turn", i, "...")
 				newRegions := <-receiveHaloChannel
+				fmt.Println("Received for halo channels for turn", i, "!")
 				slice = append([][]uint16{newRegions[0]}, slice...)
 				slice = append(slice, newRegions[1])
 			}
