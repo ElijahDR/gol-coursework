@@ -171,13 +171,13 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 		}
 
 		currentY := 1
-		for i := 0; i < nThreads; i++ {
-			go SliceWorker(currentY, currentY+startingY[i], slice, workerChannels[i])
+		for j := 0; j < nThreads; j++ {
+			go SliceWorker(currentY, currentY+startingY[j], slice, workerChannels[j])
 			currentY += startingY[i]
 		}
 
-		for i := 0; i < nThreads; i++ {
-			d := <-workerChannels[i]
+		for j := 0; j < nThreads; j++ {
+			d := <-workerChannels[j]
 			data = append(data, d...)
 		}
 
@@ -226,7 +226,7 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 
 			// PrintUint16World(data)
 			workingSlice = data
-			dataChannel <- data
+			dataChannel <- workingSlice
 		}
 	}
 
