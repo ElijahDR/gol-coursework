@@ -152,6 +152,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 
 	nThreads := int(math.Min(float64(sliceSize), 8))
 	startingY := CalcSharing(sliceSize-2, nThreads)
+	fmt.Println(startingY)
 
 	workerChannels := make([]chan [][]uint16, nThreads)
 	for i := 0; i < nThreads; i++ {
