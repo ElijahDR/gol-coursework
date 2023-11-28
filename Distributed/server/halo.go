@@ -113,7 +113,8 @@ func makeSendHalo(id int, req HaloRegionReq) {
 	// defer client.Close()
 
 	response := new(HaloRegionRes)
-	CONNECTIONS[id].Call("ServerCommands.ReceiveHaloRegions", req, response)
+	client := CONNECTIONS[id]
+	client.Call("ServerCommands.ReceiveHaloRegions", req, response)
 }
 
 func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel chan int, sendHaloChannel chan haloRegion) {
