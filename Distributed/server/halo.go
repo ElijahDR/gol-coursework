@@ -122,7 +122,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
 			sendHaloChannel <- haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
 			s.mu.Unlock()
-			fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn+1)
+			fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn)
 		default:
 		}
 	}
@@ -153,11 +153,13 @@ func receiveHaloRegions(s *ServerCommands, receiveHaloChannel chan [][]uint16, s
 				for i := 0; i < len(s.haloRegions[haloTurn]); i++ {
 					regions = append(regions, s.haloRegions[haloTurn][i])
 				}
+				fmt.Println("Before delete:", regions)
 				receiveHaloChannel <- regions
 				s.haloLock.Lock()
 				delete(s.haloRegions, haloTurn)
 				s.haloLock.Unlock()
 				haloTurn++
+				fmt.Println("After delete:", regions)
 				fmt.Println("Finished sending halo regions down channel to worker...", haloTurn)
 			}
 		}
