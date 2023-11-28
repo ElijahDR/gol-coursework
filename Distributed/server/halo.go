@@ -97,6 +97,9 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 	<-stopChannels["simulator"]
 
 	for name, stopChannel := range stopChannels {
+		if name == "simulator" {
+			continue
+		}
 		fmt.Println("Stopping", name)
 		stopChannel <- 1
 	}
