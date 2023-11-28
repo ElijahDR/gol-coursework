@@ -30,9 +30,9 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 		fmt.Println("Combining world...")
 		var newWorld [][]uint16
 		for i, channel := range channels {
-			fmt.Println("Getting world from", i)
+			// fmt.Println("Getting world from", i)
 			if i == s.id {
-				fmt.Println("That's me!")
+				// fmt.Println("That's me!")
 				newWorld = append(newWorld, newSlice...)
 			} else {
 				data := <-channel
