@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
-	"net"
 	"net/http"
 	_ "net/http/pprof"
 	"net/rpc"
-	"os"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -114,9 +111,9 @@ func main() {
 	if args.ip == "127.0.0.1" {
 		fmt.Println("Running as 127.0.0.1, did you set this correct?")
 	}
-	reader := bufio.NewReader(os.Stdin)
-	blank, _ := reader.ReadString('\n')
-	fmt.Println(blank)
+	// reader := bufio.NewReader(os.Stdin)
+	// blank, _ := reader.ReadString('\n')
+	// fmt.Println(blank)
 
 	CONNECTIONS = make([]*rpc.Client, len(NODES))
 	id := -1
@@ -124,19 +121,19 @@ func main() {
 		if ip == args.ip {
 			id = i
 		} else {
-			client, _ := rpc.Dial("tcp", NODES[i]+":8030")
-			CONNECTIONS[i] = client
+			for {
+				client, _ := rpc.Dial("tcp", NODES[i]+":8030")
+				CONNECTIONS[i] = client
+				if client != nil {
+					break
+				}
+			}
 		}
 	}
 	fmt.Println(CONNECTIONS)
 	if id == -1 {
 		panic("ID not in list of nodes, please update")
 	}
-	rpc.Register(&ServerCommands{id: id})
-	listener, _ := net.Listen("tcp", ":"+args.port)
-	fmt.Println("I am", args.ip+":"+args.port)
-	defer listener.Close()
-	rpc.Accept(listener)
 
 	for _, conn := range CONNECTIONS {
 		conn.Close()
