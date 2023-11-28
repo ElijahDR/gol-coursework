@@ -72,23 +72,23 @@ func masterHaloExchange(s *ServerCommands, world [][]uint8, turns int) [][]uint8
 }
 
 func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
-	dataChannel := make(chan [][]uint16, 5)
+	dataChannel := make(chan [][]uint16, 1)
 	stopChannels := make(map[string]chan int)
-	sendHaloChannel := make(chan haloRegion, 100)
-	receiveHaloChannel := make(chan [][]uint16, 100)
+	sendHaloChannel := make(chan haloRegion, 6)
+	receiveHaloChannel := make(chan [][]uint16)
 	s.haloRegions = make(map[int][][]uint16)
 	s.currentTurn = 0
 
-	stopChannels["simulator"] = make(chan int, 5)
+	stopChannels["simulator"] = make(chan int, 1)
 	go util.SimulateSliceHalo(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
 
-	stopChannels["sliceUpdater"] = make(chan int, 5)
+	stopChannels["sliceUpdater"] = make(chan int, 1)
 	go updateSliceHalo(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
 
-	stopChannels["sendHaloRegions"] = make(chan int, 5)
+	stopChannels["sendHaloRegions"] = make(chan int, 1)
 	go sendHaloRegions(s, sendHaloChannel, stopChannels["sendHaloRegions"])
 
-	stopChannels["receiveHaloRegions"] = make(chan int, 5)
+	stopChannels["receiveHaloRegions"] = make(chan int, 1)
 	go receiveHaloRegions(s, receiveHaloChannel, stopChannels["receiveHaloRegions"])
 
 	fmt.Println("Waiting for finish...")
@@ -120,7 +120,8 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			s.slice = newSlice
 			s.currentTurn++
 			regions := append(append([][]uint16{}, s.slice[1]), s.slice[len(s.slice)-2])
-			sendHaloChannel <- haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
+			newRegion := haloRegion{regions: regions, currentTurn: int(s.currentTurn)}
+			sendHaloChannel <- newRegion
 			s.mu.Unlock()
 			fmt.Println("Finished updating slice and sending halo regions... for turn", s.currentTurn)
 		default:
