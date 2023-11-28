@@ -110,11 +110,11 @@ func runHaloExchange(s *ServerCommands, turns int, finalChannel chan [][]uint16)
 }
 
 func makeSendHalo(id int, req HaloRegionReq) {
-	client, _ := rpc.Dial("tcp", NODES[id]+":8030")
-	defer client.Close()
+	// client, _ := rpc.Dial("tcp", NODES[id]+":8030")
+	// defer client.Close()
 
 	response := new(HaloRegionRes)
-	// client := CONNECTIONS[id]
+	client := CONNECTIONS[id]
 	client.Call("ServerCommands.ReceiveHaloRegions", req, response)
 }
 
@@ -198,7 +198,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 		CurrentTurn: region.currentTurn,
 		Type:        1,
 	}
-	go makeSendHalo(bottomID, request)
+	makeSendHalo(bottomID, request)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", topID, "for turn", region.currentTurn)
 	request = HaloRegionReq{
@@ -206,7 +206,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 		CurrentTurn: region.currentTurn,
 		Type:        0,
 	}
-	go makeSendHalo(topID, request)
+	makeSendHalo(topID, request)
 }
 
 func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType int) {
