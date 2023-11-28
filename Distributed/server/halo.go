@@ -77,16 +77,16 @@ func runHaloExchange(s *ServerCommands, turns int) [][]uint16 {
 	receiveHaloChannel := make(chan [][]uint16, 100)
 	s.haloRegions = make(map[int][][]uint16)
 
-	stopChannels["simulator"] = make(chan int)
+	stopChannels["simulator"] = make(chan int, 5)
 	go util.SimulateSliceHalo(s.slice, dataChannel, stopChannels["simulator"], turns, receiveHaloChannel)
 
-	stopChannels["sliceUpdater"] = make(chan int)
+	stopChannels["sliceUpdater"] = make(chan int, 5)
 	go updateSliceHalo(s, dataChannel, stopChannels["sliceUpdater"], sendHaloChannel)
 
-	stopChannels["sendHaloRegions"] = make(chan int)
+	stopChannels["sendHaloRegions"] = make(chan int, 5)
 	go sendHaloRegions(s, sendHaloChannel, stopChannels["sendHaloRegions"])
 
-	stopChannels["receiveHaloRegions"] = make(chan int)
+	stopChannels["receiveHaloRegions"] = make(chan int, 5)
 	go receiveHaloRegions(s, receiveHaloChannel, stopChannels["receiveHaloRegions"])
 
 	fmt.Println("Waiting for finish...")
