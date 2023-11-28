@@ -147,7 +147,6 @@ func GolLogic(area []byte) byte {
 }
 
 func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int, receiveHaloChannel chan [][]uint16) {
-	var data [][]uint16
 	sliceSize := len(slice)
 
 	nThreads := int(math.Min(float64(sliceSize), 8))
@@ -162,6 +161,7 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 	workingSlice := slice
 	PrintUint16World(workingSlice)
 	for i := 0; i < turns; i++ {
+		var data [][]uint16
 		if len(stopChannel) > 1 {
 			break
 		}
@@ -187,8 +187,8 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 		}
 
 		fmt.Println("Finished turn", i, "in SimulateSliceHalo")
-		dataChannel <- data
 		workingSlice = data
+		dataChannel <- workingSlice
 		PrintUint16World(workingSlice)
 	}
 
@@ -196,7 +196,6 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 }
 
 func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int) [][]uint16 {
-	var data [][]uint16
 	sliceSize := len(slice)
 
 	nThreads := int(math.Min(float64(sliceSize), 8))
@@ -210,6 +209,7 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 	workingSlice := slice
 
 	for i := 0; i < turns; i++ {
+		var data [][]uint16
 		select {
 		case <-stopChannel:
 			return workingSlice
@@ -296,6 +296,6 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 
 	// PrintUint16World(newSlice)
 
-	fmt.Println("Length of slice given to worker:", len(newSlice))
+	fmt.Println("Length of slice returned from worker:", len(newSlice))
 	c <- newSlice
 }
