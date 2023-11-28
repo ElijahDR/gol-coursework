@@ -123,7 +123,7 @@ func updateSliceHalo(s *ServerCommands, dataChannel chan [][]uint16, stopChannel
 			fmt.Println("Update Slice Stopped...")
 			break
 		case newSlice := <-dataChannel:
-			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn+1)
+			fmt.Println("Updating slice and sending halo regions... for turn", s.currentTurn)
 			s.mu.Lock()
 			s.slice = newSlice
 			s.currentTurn++
