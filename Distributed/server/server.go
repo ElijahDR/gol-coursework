@@ -120,6 +120,7 @@ func main() {
 			defer client.Close()
 		}
 	}
+	fmt.Println(CONNECTIONS)
 	if id == -1 {
 		panic("ID not in list of nodes, please update")
 	}
