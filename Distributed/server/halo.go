@@ -196,7 +196,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 		CurrentTurn: region.currentTurn,
 		Type:        1,
 	}
-	makeSendHalo(bottomID, request)
+	go makeSendHalo(bottomID, request)
 
 	fmt.Println("Sending Halo Regions from", s.id, "to", topID, "for turn", region.currentTurn)
 	request = HaloRegionReq{
@@ -204,7 +204,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 		CurrentTurn: region.currentTurn,
 		Type:        0,
 	}
-	makeSendHalo(topID, request)
+	go makeSendHalo(topID, request)
 }
 
 func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType int) {
