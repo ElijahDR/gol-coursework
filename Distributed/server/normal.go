@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
@@ -27,7 +26,7 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 
 		newSlice := iterateSlice(s.slice)
 
-		fmt.Println("Combining world...")
+		// fmt.Println("Combining world...")
 		var newWorld [][]uint16
 		for i, channel := range channels {
 			// fmt.Println("Getting world from", i)
