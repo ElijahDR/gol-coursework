@@ -26,13 +26,12 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 					}
 				}
 			} else if key == 'q' {
-				s.returnMain <- true
+				s.returnMain <- 1
 				return util.ConvertToUint8(uint16World)
 			} else if key == 'k' {
 				defer func() {
 					go func() {
-						s.returnMain <- true
-						s.quit <- true
+						s.returnMain <- 2
 					}()
 				}()
 				return util.ConvertToUint8(uint16World)
@@ -67,7 +66,7 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 		s.currentTurn = j + 1
 	}
 
-	s.returnMain <- true
+	s.returnMain <- 1
 	return util.ConvertToUint8(uint16World)
 }
 

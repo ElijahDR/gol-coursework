@@ -42,7 +42,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	s.broker = true
 
 	s.keyPresses = make(chan rune, 5)
-	s.returnMain = make(chan bool)
+	s.returnMain = make(chan int)
 
 	if turns == 0 {
 		res.World = world
@@ -59,13 +59,16 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// }
 	go masterNormal(s, world, turns)
 	// res.World = masterNormal(s, world, turns)
-	<-s.returnMain
+	code := <-s.returnMain
 	res.World = util.ConvertToUint8(s.currentWorld)
 	// util.PrintUint8World(res.World)
 
 	s.currentTurn = 0
 	// s.broker = false
 	fmt.Println("Returned main RUNGOL Request")
+	if code == 2 {
+		s.quit <- true
+	}
 	return
 }
 

@@ -24,7 +24,7 @@ type ServerCommands struct {
 	totalTurns   int
 	keyPresses   chan rune
 	quit         chan bool
-	returnMain   chan bool
+	returnMain   chan int
 	haloRegions  map[int][][]uint16
 	haloLock     sync.Mutex
 	currentWorld [][]uint16
