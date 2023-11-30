@@ -204,7 +204,8 @@ func main() {
 			}
 			client, _ := rpc.Dial("tcp", ip+":8030")
 			req := QuitReq{}
-			client.Go("ServerCommands.Quit", req, nil, nil)
+			res := new(QuitRes)
+			client.Call("ServerCommands.Quit", req, res)
 		}
 	}
 }
