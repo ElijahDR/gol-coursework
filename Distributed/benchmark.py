@@ -1,7 +1,7 @@
 import scipy
 from scipy import stats
 
-file = "./distributed_10_1thread.txt"
+file = "./distributed_5_node.txt"
 
 f = open(file, "r")
 data = f.read()
