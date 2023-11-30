@@ -70,7 +70,11 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	if code == 2 {
 		defer func() {
 			go func() {
-				s.quit <- true
+				if s.broker {
+					s.quit <- 2
+				} else {
+					s.quit <- 1
+				}
 			}()
 		}()
 	}
@@ -106,7 +110,7 @@ func (s *ServerCommands) CheckAlive(req CheckAliveReq, res *CheckAliveRes) (err 
 }
 
 func (s *ServerCommands) Quit(req QuitReq, res *QuitRes) (err error) {
-	s.quit <- true
+	s.quit <- 1
 	return
 }
 
@@ -157,7 +161,7 @@ func main() {
 		panic("ID not in list of nodes, please update")
 	}
 
-	quit := make(chan bool)
+	quit := make(chan int)
 	broker := false
 	rpc.Register(&ServerCommands{id: id, quit: quit, broker: broker})
 	listener, _ := net.Listen("tcp", ":"+args.port)
@@ -179,9 +183,9 @@ func main() {
 	fmt.Println(CONNECTIONS)
 
 	go rpc.Accept(listener)
-	<-quit
+	code := <-quit
 	time.Sleep(2 * time.Second)
-	if broker {
+	if code == 2 {
 		for i, conn := range CONNECTIONS {
 			fmt.Print("closing", i, "...")
 			if i == id {
