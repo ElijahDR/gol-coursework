@@ -65,15 +65,16 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 	s.currentTurn = 0
 	// s.broker = false
+	fmt.Println("Returned main RUNGOL Request")
 	return
 }
 
 func (s *ServerCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (err error) {
 	key := req.Key
 	fmt.Println("KEY PRESSED", string(key))
-	s.keyPresses <- key
 	res.World = util.ConvertToUint8(s.currentWorld)
 	res.Turn = s.currentTurn
+	s.keyPresses <- key
 	return
 }
 
