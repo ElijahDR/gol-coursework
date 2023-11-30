@@ -161,6 +161,7 @@ func (s *ServerCommands) Ping(req PingReq, res *PingRes) (err error) {
 
 func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (err error) {
 	if s.broker {
+		fmt.Println("I am already broker!")
 		res.ID = s.id
 		return
 	}
@@ -183,7 +184,6 @@ func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (er
 
 	min := totalPing
 	id := s.id
-	fmt.Println(totalPing)
 	for i, ip := range NODES {
 		if i == s.id {
 			continue
@@ -196,6 +196,7 @@ func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (er
 		client.Call("ServerCommands.TotalPing", request, response)
 
 		if response.Broker {
+			fmt.Println(ip, "already broker!")
 			res.ID = id
 			return
 		}
@@ -205,7 +206,6 @@ func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (er
 			min = response.TotalPing
 		}
 
-		fmt.Println(response.TotalPing)
 		client.Close()
 	}
 
