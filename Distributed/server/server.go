@@ -207,7 +207,6 @@ func main() {
 				req := QuitReq{}
 				res := new(QuitRes)
 				client.Call("ServerCommands.Quit", req, res)
-				client.Close()
 			}
 		}
 	}
