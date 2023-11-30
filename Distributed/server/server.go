@@ -35,6 +35,43 @@ type sliceInfo struct {
 var blacklist = []int{}
 
 func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
+	if s.currentTurn != 0 && len(req.World) == len(s.currentWorld) && s.totalTurns == req.Turns {
+		world := s.currentWorld
+		turns := req.Turns - s.currentTurn
+		height := len(world)
+		width := len(world[0])
+
+		fmt.Println("Server Received Continuation of:", width, "x", height, "for", req.Turns, "turns")
+		// if height < 64 && width < 64 {
+		// 	res.World = masterLocal(s, world, turns)
+		// if height < 512 && width < 512 {
+		// 	res.World = masterNormal(s, world, turns)
+		// } else {
+		// 	res.World = masterHaloExchange(s, world, turns)
+		// }
+		go masterNormal(s, world, turns)
+		// res.World = masterNormal(s, world, turns)
+		code := <-s.returnMain
+		res.World = util.ConvertToUint8(s.currentWorld)
+		// util.PrintUint8World(res.World)
+		if code == 0 {
+			s.currentTurn = 0
+		}
+		// s.broker = false
+		if code == 2 {
+			defer func() {
+				go func() {
+					if s.broker {
+						s.quit <- 2
+					} else {
+						s.quit <- 1
+					}
+				}()
+			}()
+		}
+		return
+
+	}
 	world := req.World
 	turns := req.Turns
 	height := len(world)
@@ -58,13 +95,14 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// } else {
 	// 	res.World = masterHaloExchange(s, world, turns)
 	// }
-	go masterNormal(s, world, turns)
+	go masterNormal(s, util.ConvertToUint16(world), turns)
 	// res.World = masterNormal(s, world, turns)
 	code := <-s.returnMain
 	res.World = util.ConvertToUint8(s.currentWorld)
 	// util.PrintUint8World(res.World)
-
-	s.currentTurn = 0
+	if code == 0 {
+		s.currentTurn = 0
+	}
 	// s.broker = false
 	fmt.Println("Returned main RUNGOL Request")
 	if code == 2 {
@@ -79,6 +117,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 		}()
 	}
 	return
+
 }
 
 func (s *ServerCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (err error) {
@@ -121,6 +160,10 @@ func (s *ServerCommands) Ping(req PingReq, res *PingRes) (err error) {
 }
 
 func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (err error) {
+	if s.broker {
+		res.ID = s.id
+		return
+	}
 	totalPing := 0
 	for i, ip := range NODES {
 		if i == s.id {
@@ -152,6 +195,11 @@ func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (er
 		response := new(TotalPingRes)
 		client.Call("ServerCommands.TotalPing", request, response)
 
+		if response.Broker {
+			res.ID = id
+			return
+		}
+
 		if response.TotalPing < min {
 			id = i
 			min = response.TotalPing
@@ -167,6 +215,10 @@ func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (er
 
 func (s *ServerCommands) TotalPing(req TotalPingReq, res *TotalPingRes) (err error) {
 	totalPing := 0
+	if s.broker {
+		res.Broker = true
+		return
+	}
 	for i, ip := range NODES {
 		if i == s.id {
 			continue
@@ -235,7 +287,7 @@ func main() {
 
 	quit := make(chan int)
 	broker := false
-	rpc.Register(&ServerCommands{id: id, quit: quit, broker: broker})
+	rpc.Register(&ServerCommands{id: id, quit: quit, broker: broker, currentTurn: 0})
 	listener, _ := net.Listen("tcp", ":"+args.port)
 	fmt.Println("I am", args.ip+":"+args.port)
 	defer listener.Close()

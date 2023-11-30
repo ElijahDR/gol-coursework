@@ -7,8 +7,8 @@ import (
 	"uk.ac.bris.cs/gameoflife/util"
 )
 
-func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
-	uint16World := util.ConvertToUint16(world)
+func masterNormal(s *ServerCommands, world [][]uint16, turns int) [][]uint8 {
+	uint16World := world
 
 	channels := make([]chan [][]uint16, len(NODES))
 	for i := 0; i < len(NODES); i++ {
@@ -66,7 +66,7 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 		s.currentTurn = j + 1
 	}
 
-	s.returnMain <- 1
+	s.returnMain <- 0
 	return util.ConvertToUint8(uint16World)
 }
 

@@ -115,7 +115,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 
 	req := NomBrokerReq{}
 	res := new(NomBrokerRes)
-	client.Call("ServerCommands.RunGOL", req, res)
+	client.Call("ServerCommands.NominateBroker", req, res)
 
 	brokerID := res.ID
 	fmt.Println(brokerID)

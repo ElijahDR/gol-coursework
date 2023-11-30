@@ -105,7 +105,10 @@ type PingReq struct{}
 type PingRes struct{ Ping bool }
 
 type TotalPingReq struct{}
-type TotalPingRes struct{ TotalPing int }
+type TotalPingRes struct {
+	TotalPing int
+	Broker    bool
+}
 
 type NomBrokerReq struct{}
 type NomBrokerRes struct{ ID int }
