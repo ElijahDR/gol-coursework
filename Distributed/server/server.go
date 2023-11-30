@@ -202,12 +202,10 @@ func main() {
 			if i == id {
 				continue
 			}
-			for {
-				client, _ := rpc.Dial("tcp", ip+":8030")
-				req := QuitReq{}
-				res := new(QuitRes)
-				client.Call("ServerCommands.Quit", req, res)
-			}
+			client, _ := rpc.Dial("tcp", ip+":8030")
+			req := QuitReq{}
+			res := new(QuitRes)
+			client.Call("ServerCommands.Quit", req, res)
 		}
 	}
 }
