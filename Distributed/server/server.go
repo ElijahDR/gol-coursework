@@ -40,6 +40,8 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	width := len(world[0])
 	s.totalTurns = turns
 
+	s.keyPresses = make(chan rune, 5)
+
 	if turns == 0 {
 		res.World = world
 		return
