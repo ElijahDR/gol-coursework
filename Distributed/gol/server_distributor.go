@@ -42,6 +42,7 @@ func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresse
 						res := new(KeyPressResponse)
 						client.Call("ServerCommands.KeyPress", req, res)
 						fmt.Println("Continuing...")
+						break
 					}
 				}
 			} else if key == 's' {

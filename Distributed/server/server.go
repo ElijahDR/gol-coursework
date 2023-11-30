@@ -41,6 +41,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	s.totalTurns = turns
 
 	s.keyPresses = make(chan rune, 5)
+	s.returnMain = make(chan bool)
 
 	if turns == 0 {
 		res.World = world
@@ -55,9 +56,10 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// } else {
 	// 	res.World = masterHaloExchange(s, world, turns)
 	// }
-	res.World = masterNormal(s, world, turns)
+	go masterNormal(s, world, turns)
 	// res.World = masterNormal(s, world, turns)
-
+	<-s.returnMain
+	res.World = util.ConvertToUint8(s.currentWorld)
 	// util.PrintUint8World(res.World)
 
 	s.currentTurn = 0
@@ -161,7 +163,10 @@ func main() {
 	go rpc.Accept(listener)
 	<-quit
 
-	for _, conn := range CONNECTIONS {
+	for i, conn := range CONNECTIONS {
+		if i == id {
+			continue
+		}
 		conn.Close()
 	}
 }
