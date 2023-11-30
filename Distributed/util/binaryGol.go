@@ -55,7 +55,6 @@ func ConvertToUint8(world [][]uint16) [][]uint8 {
 		}
 		newWorld = append(newWorld, newLine)
 	}
-
 	return newWorld
 }
 
@@ -111,7 +110,24 @@ func convertToBytes(world [][]uint8) [][]byte {
 	return byteWorld
 }
 
-func CalcAliveCellsUint16(world [][]uint16) int {
+func CalcAliveCellsUint16(world [][]uint16) []Cell {
+	var cells []Cell
+	for y, line := range world {
+		for x, u := range line {
+			for i := 0; i < 16; i++ {
+				if (u>>uint8(15-i))&1 == 1 {
+					cells = append(cells, Cell{
+						X: (x * 16) + i,
+						Y: y,
+					})
+				}
+			}
+		}
+	}
+	return cells
+}
+
+func CalcAliveCellsCountUint16(world [][]uint16) int {
 	c := 0
 	for _, line := range world {
 		for _, u := range line {
@@ -127,6 +143,20 @@ func CalcAliveCellsUint16(world [][]uint16) int {
 // 		return
 // 	}
 // }
+
+func GolLogicWithFlips(area []byte) []byte {
+	cell := (area[1] >> uint8(1)) & 1
+	// fmt.Println("Cell:", cell)
+	count := bits.OnesCount8(area[0]) + bits.OnesCount8(area[1]) + bits.OnesCount8(area[2]) - int(cell)
+	// fmt.Println("Count:", count)
+	if cell == 1 && (count == 2 || count == 3) {
+		return []byte{1, cell ^ 1}
+	} else if cell == 0 && count == 3 {
+		return []byte{1, cell ^ 1}
+	} else {
+		return []byte{0, cell ^ 0}
+	}
+}
 
 func GolLogic(area []byte) byte {
 	// for _, c := range area {
@@ -199,20 +229,23 @@ func SimulateSliceHalo(slice [][]uint16, dataChannel chan [][]uint16, stopChanne
 	stopChannel <- 1
 }
 
-func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int) [][]uint16 {
+func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int, nThreads int) [][]uint16 {
 	sliceSize := len(slice)
 
-	nThreads := int(math.Min(float64(sliceSize), 8))
+	// nThreads := int(math.Min(float64(sliceSize), 8))
+	// nThreads = 1
+
 	startingY := CalcSharing(sliceSize-2, nThreads)
 
 	workerChannels := make([]chan [][]uint16, nThreads)
 	for i := 0; i < nThreads; i++ {
-		workerChannels[i] = make(chan [][]uint16, 2)
+		workerChannels[i] = make(chan [][]uint16)
 	}
 
 	workingSlice := slice
 
 	for i := 0; i < turns; i++ {
+		// start := time.Now()
 		var data [][]uint16
 		select {
 		case <-stopChannel:
@@ -220,9 +253,11 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 		default:
 			if i > 0 {
 				workingSlice = append([][]uint16{workingSlice[len(workingSlice)-1]}, workingSlice...)
-				workingSlice = append(workingSlice, workingSlice[0])
+				workingSlice = append(workingSlice, workingSlice[1])
 			}
 			currentY := 1
+			// fmt.Println("Current Turn Working Slice:", i)
+			// PrintUint16World(workingSlice)
 			for j := 0; j < nThreads; j++ {
 				go SliceWorker(currentY, currentY+startingY[j], workingSlice, workerChannels[j])
 				currentY += startingY[j]
@@ -234,6 +269,9 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 				data = append(data, d...)
 			}
 
+			// t := time.Now()
+			// elapsed := t.Sub(start)
+			// fmt.Println(elapsed)
 			// PrintUint16World(data)
 			workingSlice = data
 			dataChannel <- workingSlice
@@ -241,14 +279,141 @@ func SimulateSlice(slice [][]uint16, dataChannel chan [][]uint16, stopChannel ch
 	}
 
 	stopChannel <- 1
-	return slice
+	return workingSlice
+}
+
+func SimulateSliceWithFlips(slice [][]uint16, dataChannel chan [][]uint16, stopChannel chan int, turns int, nThreads int, flipChannel chan [][]int) [][]uint16 {
+	sliceSize := len(slice)
+
+	// nThreads := int(math.Min(float64(sliceSize), 8))
+	// nThreads = 1
+
+	startingY := CalcSharing(sliceSize-2, nThreads)
+
+	workerChannels := make([]chan [][]uint16, nThreads)
+	flipChannels := make([]chan [][]int, nThreads)
+	for i := 0; i < nThreads; i++ {
+		workerChannels[i] = make(chan [][]uint16)
+		flipChannels[i] = make(chan [][]int)
+	}
+
+	workingSlice := slice
+
+	for i := 0; i < turns; i++ {
+		// start := time.Now()
+		var data [][]uint16
+		var flips [][]int
+		select {
+		case <-stopChannel:
+			return workingSlice
+		default:
+			if i > 0 {
+				workingSlice = append([][]uint16{workingSlice[len(workingSlice)-1]}, workingSlice...)
+				workingSlice = append(workingSlice, workingSlice[1])
+			}
+			currentY := 1
+			// fmt.Println("Current Turn Working Slice:", i)
+			// PrintUint16World(workingSlice)
+			for j := 0; j < nThreads; j++ {
+				go SliceWorkerWithFlips(currentY, currentY+startingY[j], workingSlice, workerChannels[j], flipChannels[j])
+				currentY += startingY[j]
+			}
+
+			for j := 0; j < nThreads; j++ {
+				d := <-workerChannels[j]
+				// PrintUint16World(d)
+				data = append(data, d...)
+
+				f := <-flipChannels[j]
+				flips = append(flips, f...)
+			}
+
+			// t := time.Now()/
+			// elapsed := t.Sub(start)
+			// fmt.Println(elapsed)
+			// PrintUint16World(data)
+			workingSlice = data
+			dataChannel <- workingSlice
+			flipChannel <- flips
+		}
+	}
+
+	stopChannel <- 1
+	return workingSlice
+}
+
+func SliceWorkerWithFlips(startY int, endY int, slice [][]uint16, dataChannel chan [][]uint16, flipChannel chan [][]int) {
+	nuint16 := len(slice[0])
+	var newSlice [][]uint16
+	var flipped [][]int
+	for y := startY; y < endY; y++ {
+		var newLine []uint16
+		for x := 0; x < nuint16; x++ {
+			var newuint16 uint16
+
+			area := make([]byte, 3)
+			if x == 0 {
+				for j := -1; j <= 1; j++ {
+					// Get the last bit of the furthest right uint16 and the first 2 of the first uint16
+					area[j+1] = (byte(slice[y+j][nuint16-1]&1) << 2) | byte(slice[y+j][0]>>14)
+				}
+			} else {
+				for j := -1; j <= 1; j++ {
+					area[j+1] = byte(slice[y+j][x-1]&1)<<2 | byte(slice[y+j][x]>>uint8(14))
+				}
+			}
+			logic := GolLogicWithFlips(area)
+			newuint16 = uint16(logic[0])
+			if logic[1] == 1 {
+				flipped = append(flipped, []int{x * 16, y})
+			}
+
+			for i := 1; i < 15; i++ {
+				area := make([]byte, 3)
+				for j := -1; j <= 1; j++ {
+					area[j+1] = byte(slice[y+j][x]>>uint8(14-i)) & uint8(7)
+				}
+				logic := GolLogicWithFlips(area)
+				newuint16 = newuint16<<uint8(1) | uint16(logic[0])
+				if logic[1] == 1 {
+					flipped = append(flipped, []int{(x * 16) + i, y})
+				}
+			}
+
+			area = make([]byte, 3)
+			if x == nuint16-1 {
+				for j := -1; j <= 1; j++ {
+					// Get the first bit of the leftmost uint16 and the last two of the rightmost uint16
+					area[j+1] = byte(slice[y+j][nuint16-1]&3)<<1 | byte(slice[y+j][0]>>15)
+				}
+			} else {
+				for j := -1; j <= 1; j++ {
+					area[j+1] = (byte(slice[y+j][x])&3)<<1 | byte(slice[y+j][x+1]>>15)
+				}
+				// printArea(area, (x+1)*16, y)]
+			}
+
+			logic = GolLogicWithFlips(area)
+			newuint16 = newuint16<<uint8(1) | uint16(logic[0])
+			if logic[1] == 1 {
+				flipped = append(flipped, []int{(x * 16) + 15, y})
+			}
+
+			newLine = append(newLine, newuint16)
+		}
+		newSlice = append(newSlice, newLine)
+	}
+
+	dataChannel <- newSlice
+	flipChannel <- flipped
 }
 
 func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 	nuint16 := len(slice[0])
 	// printRows(slice, y)
 
-	// PrintUint16World(slice[startY:endY])
+	// fmt.Println("Working Incoming")
+	// fmt.Println(slice[startY:endY])
 	// fmt.Println(startY, endY)
 	// fmt.Println("Length of slice given to worker:", len(slice))
 	var newSlice [][]uint16
@@ -297,7 +462,7 @@ func SliceWorker(startY int, endY int, slice [][]uint16, c chan [][]uint16) {
 		}
 		newSlice = append(newSlice, newLine)
 	}
-
+	// fmt.Println("Worker Output:")
 	// PrintUint16World(newSlice)
 
 	// fmt.Println("Length of slice returned from worker:", len(newSlice))

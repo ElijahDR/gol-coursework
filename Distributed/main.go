@@ -9,6 +9,10 @@ import (
 	"uk.ac.bris.cs/gameoflife/sdl"
 )
 
+func getGOMAXPROCS() int {
+	return runtime.GOMAXPROCS(0)
+}
+
 // main is the function called when starting Game of Life with 'go run .'
 func main() {
 	runtime.LockOSThread()
@@ -41,7 +45,7 @@ func main() {
 	flag.StringVar(
 		&params.Type,
 		"type",
-		"d",
+		"p",
 		"Specify the type of GOL to run: p for parallel, d for distributed")
 
 	noVis := flag.Bool(
@@ -54,6 +58,7 @@ func main() {
 	fmt.Println("Threads:", params.Threads)
 	fmt.Println("Width:", params.ImageWidth)
 	fmt.Println("Height:", params.ImageHeight)
+	fmt.Printf("GOMAXPROCS is %d\n", getGOMAXPROCS())
 
 	if params.Type == "p" {
 		fmt.Println("Running Parallel")

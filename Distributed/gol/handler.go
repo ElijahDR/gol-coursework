@@ -1,7 +1,11 @@
 package gol
 
 func handler(p Params, c distributorChannels, keyPresses <-chan rune) {
-	if p.Type == "d" {
-		broker_distributor(p, c, keyPresses)
-	}
+	server_distribution(p, c, keyPresses)
+	// if p.Type == "d" {
+	// } else if p.Type == "p" {
+	// 	parallel_distributor(p, c, keyPresses)
+	// } else {
+	// 	parallel_distributor(p, c, keyPresses)
+	// }
 }

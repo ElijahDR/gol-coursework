@@ -9,7 +9,7 @@ func masterLocal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 
 	slices := util.CalcSlices(uint16World, len(world), 1)
 	stopChannelSim := make(chan int)
-	go util.SimulateSlice(slices[0], dataChannel, stopChannelSim, turns)
+	go util.SimulateSlice(slices[0], dataChannel, stopChannelSim, turns, s.params.Threads)
 	stopChannelUpdate := make(chan int)
 	go updateSliceLocal(s, dataChannel, stopChannelUpdate)
 	<-stopChannelSim

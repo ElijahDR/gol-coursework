@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
@@ -73,7 +74,8 @@ func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes)
 func iterateSlice(slice [][]uint16) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannel := make(chan int)
-	go util.SimulateSlice(slice, dataChannel, stopChannel, 1)
+	nThreads := int(math.Min(float64(len(slice)), 8))
+	go util.SimulateSlice(slice, dataChannel, stopChannel, 1, nThreads)
 	data := <-dataChannel
 	return data
 }
