@@ -187,16 +187,28 @@ func main() {
 	code := <-quit
 	time.Sleep(2 * time.Second)
 	if code == 2 {
-		for i, conn := range CONNECTIONS {
-			fmt.Println("closing", i, "...")
+		// for i, conn := range CONNECTIONS {
+		// 	fmt.Println("closing", i, "...")
+		// 	if i == id {
+		// 		continue
+		// 	}
+		// 	req := new(QuitReq)
+		// 	res := new(QuitRes)
+		// 	conn.Call("ServerCommands.Quit", req, res)
+		// 	defer conn.Close()
+		// 	fmt.Println("closed", i, "!")
+		// }
+		for i, ip := range NODES {
 			if i == id {
 				continue
 			}
-			req := new(QuitReq)
-			res := new(QuitRes)
-			conn.Call("ServerCommands.Quit", req, res)
-			defer conn.Close()
-			fmt.Println("closed", i, "!")
+			for {
+				client, _ := rpc.Dial("tcp", ip+":8030")
+				req := QuitReq{}
+				res := new(QuitRes)
+				client.Call("ServerCommands.Quit", req, res)
+				client.Close()
+			}
 		}
 	}
 }
