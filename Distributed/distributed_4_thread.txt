@@ -1,0 +1,14 @@
+goos: darwin
+goarch: arm64
+pkg: uk.ac.bris.cs/gameoflife
+BenchmarkGolThreads/512x512x100-4-10         	       1	1704210959 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1651680625 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1575677833 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1666443209 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1592977250 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1639957042 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1702863625 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1765255000 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	1790071834 ns/op
+BenchmarkGolThreads/512x512x100-4-10         	       1	3334790875 ns/op
+ok  	uk.ac.bris.cs/gameoflife	21.530s
