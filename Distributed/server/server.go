@@ -115,6 +115,11 @@ func (s *ServerCommands) Quit(req QuitReq, res *QuitRes) (err error) {
 	return nil
 }
 
+func (s *ServerCommands) Ping(req PingReq, res *PingRes) (err error) {
+	res.Ping = true
+	return
+}
+
 func checkAlive(myID int, checkID int) {
 	destIP := NODES[checkID]
 	client, error := rpc.Dial("tcp", destIP+":8030")

@@ -100,3 +100,6 @@ type QuitReq struct {
 
 type QuitRes struct {
 }
+
+type PingReq struct{}
+type PingRes struct{ Ping bool }

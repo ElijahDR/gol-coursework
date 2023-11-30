@@ -4,7 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"net/rpc"
+	"time"
 )
+
+var NODES = []string{
+	"23.22.135.15",
+	"35.174.225.191",
+	"44.208.149.39",
+	"3.214.156.90",
+	"44.208.47.178",
+}
 
 func testHalo() {
 	server := "23.22.135.15:8030"
@@ -17,6 +26,28 @@ func testHalo() {
 	response := new(HaloExchangeRes)
 	client.Call("ServerCommands.HaloExchange", request, response)
 	fmt.Println(response)
+}
+
+func testPings() int {
+	min := 999999999999
+	id := -1
+	for i, ip := range NODES {
+		server := ip + ":8030"
+		client, _ := rpc.Dial("tcp", server)
+
+		request := PingReq{}
+		response := new(PingRes)
+		t := time.Now()
+		client.Call("ServerCommands.RunGOL", request, response)
+		ping := int(time.Since(t) / time.Millisecond)
+		fmt.Println(i, ping)
+		if ping < min {
+			id = i
+			min = ping
+		}
+		client.Close()
+	}
+	return id
 }
 
 func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresses <-chan rune, stopChannel chan int) {
@@ -77,6 +108,8 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	world := readWorld(p, c)
 
 	// testHalo()
+	brokerID := testPings()
+	fmt.Println(brokerID)
 
 	server := "23.22.135.15:8030"
 	// server := "127.0.0.1:8031"

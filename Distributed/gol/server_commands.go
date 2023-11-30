@@ -55,3 +55,6 @@ type HaloRegionReq struct {
 
 type HaloRegionRes struct {
 }
+
+type PingReq struct{}
+type PingRes struct{ Ping bool }
