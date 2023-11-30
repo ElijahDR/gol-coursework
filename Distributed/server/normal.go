@@ -88,6 +88,12 @@ func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16, nThread
 	channel <- response.Slice
 }
 
+func (s *ServerCommands) AliveCellsCount(req util.AliveCellsCountRequest, res *util.AliveCellsCountResponse) (err error) {
+	res.Count = util.CalcAliveCellsCountUint16(s.currentWorld)
+	res.Turn = s.currentTurn
+	return
+}
+
 func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes) (err error) {
 	slice := req.Slice
 	newSlice := iterateSlice(slice, req.Threads)

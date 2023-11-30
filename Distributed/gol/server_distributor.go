@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"net/rpc"
+	"time"
 )
 
 var NODES = []string{
@@ -142,6 +143,23 @@ func halo_distribution(p Params, c distributorChannels, keyPresses <-chan rune) 
 	close(c.events)
 }
 
+func liveCellsReportServer(client *rpc.Client, ticker *time.Ticker, c distributorChannels, done chan int) {
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			req := AliveCellsCountRequest{}
+			res := new(AliveCellsCountResponse)
+			client.Call("ServerCommands.AliveCellsCount", req, res)
+			c.events <- AliveCellsCount{
+				CompletedTurns: res.Turn,
+				CellsCount:     res.Count,
+			}
+		}
+	}
+}
+
 func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune) {
 
 	// TODO: Create a 2D slice to store the world.
@@ -178,6 +196,10 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	stopChannel := make(chan int)
 	go serverHandleKeyPresses(client, c, keyPresses, stopChannel)
 
+	stopAliveCellsChan := make(chan int)
+	ticker := time.NewTicker(2000 * time.Millisecond)
+	go liveCellsReportServer(client, ticker, c, stopAliveCellsChan)
+
 	client.Call("ServerCommands.RunGOL", request, response)
 	fmt.Println("RunGOL returned")
 
@@ -193,6 +215,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	}
 
 	stopChannel <- 1
+	stopAliveCellsChan <- 1
 
 	// Make sure that the Io has finished any output before exiting.
 	c.ioCommand <- ioCheckIdle
