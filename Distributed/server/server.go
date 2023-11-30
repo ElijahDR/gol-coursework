@@ -110,6 +110,7 @@ func (s *ServerCommands) CheckAlive(req CheckAliveReq, res *CheckAliveRes) (err 
 }
 
 func (s *ServerCommands) Quit(req QuitReq, res *QuitRes) (err error) {
+	fmt.Println("quitting...")
 	s.quit <- 1
 	return
 }
@@ -187,13 +188,15 @@ func main() {
 	time.Sleep(2 * time.Second)
 	if code == 2 {
 		for i, conn := range CONNECTIONS {
-			fmt.Print("closing", i, "...")
+			fmt.Println("closing", i, "...")
 			if i == id {
 				continue
 			}
-			conn.Call("ServerCommands.Quit", new(QuitReq), new(QuitRes))
-			conn.Close()
-			fmt.Print("closed", i, "!")
+			req := new(QuitReq)
+			res := new(QuitRes)
+			conn.Call("ServerCommands.Quit", req, res)
+			defer conn.Close()
+			fmt.Println("closed", i, "!")
 		}
 	}
 }
