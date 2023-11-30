@@ -122,11 +122,11 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 
 func (s *ServerCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (err error) {
 	key := req.Key
-	fmt.Println("KEY PRESSED", string(key))
+	fmt.Println("Key Press Request:", string(key))
 	res.World = util.ConvertToUint8(s.currentWorld)
 	res.Turn = s.currentTurn
 	s.keyPresses <- key
-	fmt.Println("returned keyPress")
+	// fmt.Println("returned keyPress")
 	return
 }
 
@@ -149,7 +149,7 @@ func (s *ServerCommands) CheckAlive(req CheckAliveReq, res *CheckAliveRes) (err 
 }
 
 func (s *ServerCommands) Quit(req QuitReq, res *QuitRes) (err error) {
-	fmt.Println("quitting...")
+	fmt.Println("Shutting Down...")
 	s.quit <- 1
 	return nil
 }

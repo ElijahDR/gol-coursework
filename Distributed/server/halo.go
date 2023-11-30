@@ -7,6 +7,31 @@ import (
 	"uk.ac.bris.cs/gameoflife/util"
 )
 
+func (s *ServerCommands) ClientRunHalo(req GolRequest, res *GolResponse) (err error) {
+	world := req.World
+	turns := req.Turns
+	height := len(world)
+	width := len(world[0])
+	s.totalTurns = turns
+
+	if turns == 0 {
+		res.World = world
+		return
+	}
+
+	fmt.Println("Server Received Request:", width, "x", height, "for", req.Turns, "turns")
+	// if height < 64 && width < 64 {
+	// 	res.World = masterLocal(s, world, turns)
+	res.World = masterHaloExchange(s, world, turns)
+	// res.World = masterNormal(s, world, turns)
+
+	// util.PrintUint8World(res.World)
+
+	s.currentTurn = 0
+	return
+
+}
+
 func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes) (err error) {
 	s.slice = req.Slice
 	turns := req.Turns
