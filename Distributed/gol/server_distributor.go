@@ -22,7 +22,10 @@ func testHalo() {
 func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresses <-chan rune, stopChannel chan int) {
 	for {
 		select {
+		case <-stopChannel:
+			break
 		case key := <-keyPresses:
+			fmt.Println("KEY PRESSED", string(key))
 			req := KeyPressRequest{
 				Key: key,
 			}
@@ -84,6 +87,10 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 		Turns: p.Turns,
 	}
 	response := new(GolResponse)
+
+	stopChannel := make(chan int)
+	go serverHandleKeyPresses(client, c, keyPresses, stopChannel)
+
 	client.Call("ServerCommands.RunGOL", request, response)
 
 	world = response.World
@@ -96,6 +103,8 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 		CompletedTurns: p.Turns,
 		Alive:          calcAliveCells(p, immutableWorld),
 	}
+
+	stopChannel <- 1
 
 	// Make sure that the Io has finished any output before exiting.
 	c.ioCommand <- ioCheckIdle
