@@ -371,9 +371,9 @@ func parallel_distributor(p Params, c distributorChannels, keyPresses <-chan run
 
 		writePGM(c, p, immutableWorld)
 	} else {
-		// bitSimulateGol(p, c, keyPresses, world)
+		bitSimulateGol(p, c, keyPresses, world)
 		// naiveSimulateGol(p, c, keyPresses, makeImmutableMatrix(world))
-		bitSimulateGolMemShare(p, c, keyPresses, world)
+		// bitSimulateGolMemShare(p, c, keyPresses, world)
 	}
 
 	// TODO: Execute all turns of the Game of Life.
