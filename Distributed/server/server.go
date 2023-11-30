@@ -7,6 +7,7 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"net/rpc"
+	"time"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
@@ -179,7 +180,7 @@ func main() {
 
 	go rpc.Accept(listener)
 	<-quit
-
+	time.Sleep(1 * time.Second)
 	if broker {
 		for i, conn := range CONNECTIONS {
 			fmt.Print("closing", i, "...")

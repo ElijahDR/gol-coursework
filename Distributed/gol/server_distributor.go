@@ -31,6 +31,7 @@ func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresse
 			}
 			res := new(KeyPressResponse)
 			client.Call("ServerCommands.KeyPress", req, res)
+			fmt.Println("KeyPress returned...")
 			if key == 'p' {
 				fmt.Println("Paused! Current Turn:", res.Turn)
 				for {
@@ -93,6 +94,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	go serverHandleKeyPresses(client, c, keyPresses, stopChannel)
 
 	client.Call("ServerCommands.RunGOL", request, response)
+	fmt.Println("RunGOL returned")
 
 	world = response.World
 
