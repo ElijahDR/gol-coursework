@@ -112,7 +112,7 @@ func (s *ServerCommands) CheckAlive(req CheckAliveReq, res *CheckAliveRes) (err 
 func (s *ServerCommands) Quit(req QuitReq, res *QuitRes) (err error) {
 	fmt.Println("quitting...")
 	s.quit <- 1
-	return
+	return nil
 }
 
 func checkAlive(myID int, checkID int) {
@@ -204,8 +204,7 @@ func main() {
 			}
 			client, _ := rpc.Dial("tcp", ip+":8030")
 			req := QuitReq{}
-			res := new(QuitRes)
-			client.Call("ServerCommands.Quit", req, res)
+			client.Go("ServerCommands.Quit", req, nil, nil)
 		}
 	}
 }
