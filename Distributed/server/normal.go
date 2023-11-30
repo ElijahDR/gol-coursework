@@ -62,7 +62,7 @@ func masterNormal(s *ServerCommands, world [][]uint16, turns int, threads int) [
 
 		uint16World = newWorld
 		s.currentWorld = uint16World
-		s.currentTurn = j + 1
+		s.currentTurn++
 	}
 
 	s.returnMain <- 0

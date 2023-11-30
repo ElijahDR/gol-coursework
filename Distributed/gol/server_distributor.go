@@ -64,7 +64,7 @@ func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresse
 			}
 			res := new(KeyPressResponse)
 			client.Call("ServerCommands.KeyPress", req, res)
-			fmt.Println("KeyPress returned...")
+			// fmt.Println("KeyPress returned...")
 			if key == 'p' {
 				fmt.Println("Paused! Current Turn:", res.Turn)
 				for {
@@ -179,7 +179,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	client.Call("ServerCommands.NominateBroker", req, res)
 
 	brokerID := res.ID
-	fmt.Println(brokerID)
+	// fmt.Println(brokerID)
 	client.Close()
 
 	server = NODES[brokerID] + ":8030"
@@ -201,7 +201,7 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	go liveCellsReportServer(client, ticker, c, stopAliveCellsChan)
 
 	client.Call("ServerCommands.RunGOL", request, response)
-	fmt.Println("RunGOL returned")
+	// fmt.Println("RunGOL returned")
 
 	world = response.World
 
