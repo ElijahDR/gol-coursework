@@ -99,6 +99,7 @@ func iterateSlice(slice [][]uint16) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannel := make(chan int)
 	nThreads := int(math.Min(float64(len(slice)), 8))
+	nThreads = 1
 	go util.SimulateSlice(slice, dataChannel, stopChannel, 1, nThreads)
 	data := <-dataChannel
 	return data

@@ -1,7 +1,7 @@
 import scipy
 from scipy import stats
 
-file = "./bit_logic_mem_share_removed_startY.txt"
+file = "./distributed_5_normal.txt"
 
 f = open(file, "r")
 data = f.read()
@@ -13,7 +13,7 @@ times = {}
 for i, line in enumerate(data):
     data[i][2] = int(line[2])/10**9
     data[i].pop(1)
-    data[i][0] = int(data[i][0].replace("BenchmarkGol/512x512x1000-", "").replace("-10", ""))
+    data[i][0] = data[i][0].replace("BenchmarkServer/16x16x100-8", "").replace("-10", "")
     if data[i][0] not in times:
         times[data[i][0]] = []
     times[data[i][0]].append(data[i][1])
