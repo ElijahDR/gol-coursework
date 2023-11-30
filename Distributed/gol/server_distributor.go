@@ -19,6 +19,51 @@ func testHalo() {
 	fmt.Println(response)
 }
 
+func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresses <-chan rune, stopChannel chan int) {
+	for {
+		select {
+		case key := <-keyPresses:
+			req := KeyPressRequest{
+				Key: key,
+			}
+			res := new(KeyPressResponse)
+			client.Call("ServerCommands.KeyPress", req, res)
+			if key == 'p' {
+				fmt.Println("Paused! Current Turn:", res.Turn)
+				for {
+					key = <-keyPresses
+					if key == 'p' {
+						req := KeyPressRequest{
+							Key: key,
+						}
+						res := new(KeyPressResponse)
+						client.Call("ServerCommands.KeyPress", req, res)
+						fmt.Println("Continuing...")
+					}
+				}
+			} else if key == 's' {
+				go writePGMServer(c, res.Turn, res.World)
+			} else if key == 'q' {
+				return
+			} else if key == 'k' {
+				go writePGMServer(c, res.Turn, res.World)
+				return
+			}
+		default:
+		}
+	}
+}
+
+func writePGMServer(c distributorChannels, turn int, world [][]uint8) {
+	c.ioCommand <- ioOutput
+	c.ioFilename <- fmt.Sprint(len(world[0])*16, "x", len(world), "x", turn)
+	for y := 0; y < len(world); y++ {
+		for x := 0; x < len(world[y]); x++ {
+			c.ioOutput <- world[y][x]
+		}
+	}
+}
+
 func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune) {
 
 	// TODO: Create a 2D slice to store the world.

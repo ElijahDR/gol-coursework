@@ -16,16 +16,17 @@ type ServerArgs struct {
 }
 
 type ServerCommands struct {
-	id          int
-	params      Params
-	slice       [][]uint16
-	mu          sync.Mutex
-	currentTurn int
-	totalTurns  int
-	keyPresses  chan rune
-	finished    chan bool
-	haloRegions map[int][][]uint16
-	haloLock    sync.Mutex
+	id           int
+	params       Params
+	slice        [][]uint16
+	mu           sync.Mutex
+	currentTurn  int
+	totalTurns   int
+	keyPresses   chan rune
+	quit         chan bool
+	haloRegions  map[int][][]uint16
+	haloLock     sync.Mutex
+	currentWorld [][]uint16
 }
 
 type GolRequest struct {
@@ -81,4 +82,13 @@ type SimulateWorldReq struct {
 type SimulateWorldRes struct {
 	World          [][]uint16
 	CompletedTurns int
+}
+
+type KeyPressRequest struct {
+	Key rune
+}
+
+type KeyPressResponse struct {
+	World [][]uint8
+	Turn  int
 }

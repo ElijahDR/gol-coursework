@@ -7,6 +7,8 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"net/rpc"
+
+	"uk.ac.bris.cs/gameoflife/util"
 )
 
 var NODES = []string{
@@ -57,6 +59,14 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// util.PrintUint8World(res.World)
 
 	s.currentTurn = 0
+	return
+}
+
+func (s *ServerCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (err error) {
+	key := req.Key
+	s.keyPresses <- key
+	res.World = util.ConvertToUint8(s.currentWorld)
+	res.Turn = s.currentTurn
 	return
 }
 
@@ -124,7 +134,9 @@ func main() {
 	if id == -1 {
 		panic("ID not in list of nodes, please update")
 	}
-	rpc.Register(&ServerCommands{id: id})
+
+	quit := make(chan bool)
+	rpc.Register(&ServerCommands{id: id, quit: quit})
 	listener, _ := net.Listen("tcp", ":"+args.port)
 	fmt.Println("I am", args.ip+":"+args.port)
 	defer listener.Close()
@@ -143,7 +155,8 @@ func main() {
 	}
 	fmt.Println(CONNECTIONS)
 
-	rpc.Accept(listener)
+	go rpc.Accept(listener)
+	<-quit
 
 	for _, conn := range CONNECTIONS {
 		conn.Close()

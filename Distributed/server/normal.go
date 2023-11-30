@@ -16,6 +16,20 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 	}
 
 	for j := 0; j < turns; j++ {
+		if len(s.keyPresses) > 0 {
+			key := <-s.keyPresses
+			if key == 'p' {
+				for {
+					key := <-s.keyPresses
+					if key == 'p' {
+						break
+					}
+				}
+			} else if key == 'q' {
+				s.quit <- true
+				return util.ConvertToUint8(uint16World)
+			}
+		}
 		slices := util.CalcSlices(uint16World, len(world), len(NODES)-len(blacklist))
 		for i, slice := range slices {
 			if i == s.id {
@@ -41,6 +55,8 @@ func masterNormal(s *ServerCommands, world [][]uint8, turns int) [][]uint8 {
 		}
 
 		uint16World = newWorld
+		s.currentWorld = uint16World
+		s.currentTurn = j + 1
 	}
 
 	return util.ConvertToUint8(uint16World)
