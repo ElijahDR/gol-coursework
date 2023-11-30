@@ -32,8 +32,9 @@ type ServerCommands struct {
 }
 
 type GolRequest struct {
-	World [][]uint8
-	Turns int
+	World   [][]uint8
+	Turns   int
+	Threads int
 }
 
 type GolResponse struct {
@@ -69,7 +70,8 @@ type HaloRegionRes struct {
 }
 
 type IterateSliceReq struct {
-	Slice [][]uint16
+	Slice   [][]uint16
+	Threads int
 }
 
 type IterateSliceRes struct {

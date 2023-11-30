@@ -14,7 +14,7 @@ func BenchmarkGol(b *testing.B) {
 	for threads := 1; threads <= 16; threads++ {
 		os.Stdout = nil // Disable all program output apart from benchmark results
 		p := gol.Params{
-			Turns:       benchLength,
+			Turns:       100,
 			Threads:     threads,
 			ImageWidth:  512,
 			ImageHeight: 512,

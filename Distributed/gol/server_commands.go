@@ -20,8 +20,9 @@ type ServerCommands struct {
 }
 
 type GolRequest struct {
-	World [][]uint8
-	Turns int
+	World   [][]uint8
+	Turns   int
+	Threads int
 }
 
 type GolResponse struct {

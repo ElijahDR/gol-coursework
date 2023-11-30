@@ -167,8 +167,9 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	defer client.Close()
 
 	request := GolRequest{
-		World: world,
-		Turns: p.Turns,
+		World:   world,
+		Turns:   p.Turns,
+		Threads: p.Threads,
 	}
 	response := new(GolResponse)
 

@@ -1,13 +1,12 @@
 package main
 
 import (
-	"math"
 	"net/rpc"
 
 	"uk.ac.bris.cs/gameoflife/util"
 )
 
-func masterNormal(s *ServerCommands, world [][]uint16, turns int) [][]uint8 {
+func masterNormal(s *ServerCommands, world [][]uint16, turns int, threads int) [][]uint8 {
 	uint16World := world
 
 	channels := make([]chan [][]uint16, len(NODES))
@@ -43,10 +42,10 @@ func masterNormal(s *ServerCommands, world [][]uint16, turns int) [][]uint8 {
 				s.slice = slice
 				continue
 			}
-			go callIterateSlice(i, slice, channels[i])
+			go callIterateSlice(i, slice, channels[i], threads)
 		}
 
-		newSlice := iterateSlice(s.slice)
+		newSlice := iterateSlice(s.slice, threads)
 
 		// fmt.Println("Combining world...")
 		var newWorld [][]uint16
@@ -70,7 +69,7 @@ func masterNormal(s *ServerCommands, world [][]uint16, turns int) [][]uint8 {
 	return util.ConvertToUint8(uint16World)
 }
 
-func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
+func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16, nThreads int) {
 	destIP := NODES[id] + ":8030"
 	// fmt.Println("Asking", destIP, "to iterate slice")
 
@@ -80,7 +79,8 @@ func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
 	}
 	defer client.Close()
 	request := IterateSliceReq{
-		Slice: slice,
+		Slice:   slice,
+		Threads: nThreads,
 	}
 	response := new(HaloExchangeRes)
 	client.Call("ServerCommands.IterateSlice", request, response)
@@ -90,16 +90,16 @@ func callIterateSlice(id int, slice [][]uint16, channel chan [][]uint16) {
 
 func (s *ServerCommands) IterateSlice(req IterateSliceReq, res *IterateSliceRes) (err error) {
 	slice := req.Slice
-	newSlice := iterateSlice(slice)
+	newSlice := iterateSlice(slice, req.Threads)
 	res.Slice = newSlice
 	return
 }
 
-func iterateSlice(slice [][]uint16) [][]uint16 {
+func iterateSlice(slice [][]uint16, nThreads int) [][]uint16 {
 	dataChannel := make(chan [][]uint16)
 	stopChannel := make(chan int)
-	nThreads := int(math.Min(float64(len(slice)), 8))
-	nThreads = 1
+	// nThreads := int(math.Min(float64(len(slice)), 8))
+	// nThreads = 1
 	go util.SimulateSlice(slice, dataChannel, stopChannel, 1, nThreads)
 	data := <-dataChannel
 	return data

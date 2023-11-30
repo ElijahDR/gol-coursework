@@ -49,7 +49,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 		// } else {
 		// 	res.World = masterHaloExchange(s, world, turns)
 		// }
-		go masterNormal(s, world, turns)
+		go masterNormal(s, world, turns, req.Threads)
 		// res.World = masterNormal(s, world, turns)
 		code := <-s.returnMain
 		res.World = util.ConvertToUint8(s.currentWorld)
@@ -95,7 +95,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// } else {
 	// 	res.World = masterHaloExchange(s, world, turns)
 	// }
-	go masterNormal(s, util.ConvertToUint16(world), turns)
+	go masterNormal(s, util.ConvertToUint16(world), turns, req.Threads)
 	// res.World = masterNormal(s, world, turns)
 	code := <-s.returnMain
 	res.World = util.ConvertToUint8(s.currentWorld)
