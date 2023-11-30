@@ -53,7 +53,7 @@ func (s *ServerCommands) HaloExchange(req HaloExchangeReq, res *HaloExchangeRes)
 func (s *ServerCommands) ReceiveHaloRegions(req HaloRegionReq, res *HaloRegionRes) (err error) {
 	region := req.Region
 	turn := req.CurrentTurn
-	fmt.Println("Receiving halo regions for turn", turn)
+	// fmt.Println("Receiving halo regions for turn", turn)
 	go updateHaloRegions(s, region, turn, req.Type)
 
 	return
@@ -217,7 +217,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	// fmt.Println("Halo Regions Sent:")
 	// util.PrintUint16World(region.regions)
 
-	fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "for turn", region.currentTurn)
+	// fmt.Println("Sending Halo Regions from", s.id, "to", bottomID, "for turn", region.currentTurn)
 	request := HaloRegionReq{
 		Region:      region.regions[0],
 		CurrentTurn: region.currentTurn,
@@ -225,7 +225,7 @@ func makeHaloExchange(s *ServerCommands, region haloRegion) {
 	}
 	makeSendHalo(bottomID, request)
 
-	fmt.Println("Sending Halo Regions from", s.id, "to", topID, "for turn", region.currentTurn)
+	// fmt.Println("Sending Halo Regions from", s.id, "to", topID, "for turn", region.currentTurn)
 	request = HaloRegionReq{
 		Region:      region.regions[1],
 		CurrentTurn: region.currentTurn,
@@ -249,7 +249,7 @@ func updateHaloRegions(s *ServerCommands, region []uint16, turn int, haloType in
 		s.haloRegions[turn] = [][]uint16{region}
 	}
 	s.haloLock.Unlock()
-	fmt.Println("Current Halo Regions:", s.haloRegions)
+	// fmt.Println("Current Halo Regions:", s.haloRegions)
 }
 
 func callHaloExchange(id int, slice [][]uint16, turns int, channel chan [][]uint16) {
