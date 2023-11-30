@@ -10,5 +10,4 @@ BenchmarkServer/512x512x100-16-10         	       1	1634678667 ns/op
 BenchmarkServer/512x512x100-16-10         	       1	1531064500 ns/op
 BenchmarkServer/512x512x100-16-10         	       1	1535469833 ns/op
 BenchmarkServer/512x512x100-16-10         	       1	1486965917 ns/op
-BenchmarkServer/512x512x100-16-10         	       1	3167874792 ns/op
 ok  	uk.ac.bris.cs/gameoflife	17.323s
