@@ -28,6 +28,7 @@ type ServerCommands struct {
 	haloRegions  map[int][][]uint16
 	haloLock     sync.Mutex
 	currentWorld [][]uint16
+	broker       bool
 }
 
 type GolRequest struct {
@@ -92,4 +93,10 @@ type KeyPressRequest struct {
 type KeyPressResponse struct {
 	World [][]uint8
 	Turn  int
+}
+
+type QuitReq struct {
+}
+
+type QuitRes struct {
 }

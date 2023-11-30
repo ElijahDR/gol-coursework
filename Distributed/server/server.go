@@ -39,6 +39,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	height := len(world)
 	width := len(world[0])
 	s.totalTurns = turns
+	s.broker = true
 
 	s.keyPresses = make(chan rune, 5)
 	s.returnMain = make(chan bool)
@@ -63,6 +64,7 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// util.PrintUint8World(res.World)
 
 	s.currentTurn = 0
+	// s.broker = false
 	return
 }
 
@@ -90,6 +92,11 @@ func (s *ServerCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (e
 
 func (s *ServerCommands) CheckAlive(req CheckAliveReq, res *CheckAliveRes) (err error) {
 	res.ResponseID = s.id
+	return
+}
+
+func (s *ServerCommands) Quit(req QuitReq, res *QuitRes) (err error) {
+	s.quit <- true
 	return
 }
 
@@ -141,7 +148,8 @@ func main() {
 	}
 
 	quit := make(chan bool)
-	rpc.Register(&ServerCommands{id: id, quit: quit})
+	broker := false
+	rpc.Register(&ServerCommands{id: id, quit: quit, broker: broker})
 	listener, _ := net.Listen("tcp", ":"+args.port)
 	fmt.Println("I am", args.ip+":"+args.port)
 	defer listener.Close()
@@ -163,10 +171,13 @@ func main() {
 	go rpc.Accept(listener)
 	<-quit
 
-	for i, conn := range CONNECTIONS {
-		if i == id {
-			continue
+	if broker {
+		for i, conn := range CONNECTIONS {
+			if i == id {
+				continue
+			}
+			conn.Call("ServerCommands.Quit", new(QuitReq), new(QuitRes))
+			conn.Close()
 		}
-		conn.Close()
 	}
 }
