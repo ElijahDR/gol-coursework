@@ -39,9 +39,9 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 		world := s.currentWorld
 		turns := req.Turns - s.currentTurn
 		height := len(world)
-		width := len(world[0])
+		width := len(world[0]) * 16
 
-		fmt.Println("Server Received Continuation of:", width, "x", height, "for", req.Turns, "turns")
+		fmt.Println("Server Received Continuation of:", width, "x", height, "for", req.Turns, "turns from turn", s.currentTurn)
 		// if height < 64 && width < 64 {
 		// 	res.World = masterLocal(s, world, turns)
 		// if height < 512 && width < 512 {
