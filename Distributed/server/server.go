@@ -19,6 +19,7 @@ var NODES = []string{
 	"3.214.156.90",
 	"44.208.47.178",
 	"3.93.57.107",
+	"18.208.253.79",
 }
 
 var CONNECTIONS []*rpc.Client
