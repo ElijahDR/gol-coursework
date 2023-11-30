@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"net/rpc"
-	"time"
 )
 
 var NODES = []string{
@@ -28,27 +27,27 @@ func testHalo() {
 	fmt.Println(response)
 }
 
-func testPings() int {
-	min := 999999999999
-	id := -1
-	for i, ip := range NODES {
-		server := ip + ":8030"
-		client, _ := rpc.Dial("tcp", server)
+// func testPings() int {
+// 	min := 999999999999
+// 	id := -1
+// 	for i, ip := range NODES {
+// 		server := ip + ":8030"
+// 		client, _ := rpc.Dial("tcp", server)
 
-		request := PingReq{}
-		response := new(PingRes)
-		t := time.Now()
-		client.Call("ServerCommands.RunGOL", request, response)
-		ping := int(time.Since(t) / time.Millisecond)
-		fmt.Println(i, ping)
-		if ping < min {
-			id = i
-			min = ping
-		}
-		client.Close()
-	}
-	return id
-}
+// 		request := PingReq{}
+// 		response := new(PingRes)
+// 		t := time.Now()
+// 		client.Call("ServerCommands.Ping", request, response)
+// 		ping := int(time.Since(t) / time.Millisecond)
+// 		fmt.Println(i, ping)
+// 		if ping < min {
+// 			id = i
+// 			min = ping
+// 		}
+// 		client.Close()
+// 	}
+// 	return id
+// }
 
 func serverHandleKeyPresses(client *rpc.Client, c distributorChannels, keyPresses <-chan rune, stopChannel chan int) {
 	for {
@@ -108,13 +107,22 @@ func server_distribution(p Params, c distributorChannels, keyPresses <-chan rune
 	world := readWorld(p, c)
 
 	// testHalo()
-	brokerID := testPings()
-	fmt.Println(brokerID)
 
-	server := "23.22.135.15:8030"
+	server := NODES[0] + ":8030"
 	// server := "127.0.0.1:8031"
 	flag.Parse()
 	client, _ := rpc.Dial("tcp", server)
+
+	req := NomBrokerReq{}
+	res := new(NomBrokerRes)
+	client.Call("ServerCommands.RunGOL", req, res)
+
+	brokerID := res.ID
+	fmt.Println(brokerID)
+	client.Close()
+
+	server = NODES[brokerID] + ":8030"
+	client, _ = rpc.Dial("tcp", server)
 	defer client.Close()
 
 	request := GolRequest{

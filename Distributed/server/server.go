@@ -120,6 +120,72 @@ func (s *ServerCommands) Ping(req PingReq, res *PingRes) (err error) {
 	return
 }
 
+func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (err error) {
+	totalPing := 0
+	for i, ip := range NODES {
+		if i == s.id {
+			continue
+		}
+		server := ip + ":8030"
+		client, _ := rpc.Dial("tcp", server)
+
+		request := PingReq{}
+		response := new(PingRes)
+		t := time.Now()
+		client.Call("ServerCommands.Ping", request, response)
+		ping := int(time.Since(t) / time.Millisecond)
+		totalPing += ping
+		client.Close()
+	}
+
+	min := totalPing
+	id := s.id
+	fmt.Println(totalPing)
+	for i, ip := range NODES {
+		if i == s.id {
+			continue
+		}
+		server := ip + ":8030"
+		client, _ := rpc.Dial("tcp", server)
+
+		request := TotalPingReq{}
+		response := new(TotalPingRes)
+		client.Call("ServerCommands.TotalPing", request, response)
+
+		if response.TotalPing < min {
+			id = i
+			min = response.TotalPing
+		}
+
+		fmt.Println(response.TotalPing)
+		client.Close()
+	}
+
+	res.ID = id
+	return
+}
+
+func (s *ServerCommands) TotalPing(req TotalPingReq, res *TotalPingRes) (err error) {
+	totalPing := 0
+	for i, ip := range NODES {
+		if i == s.id {
+			continue
+		}
+		server := ip + ":8030"
+		client, _ := rpc.Dial("tcp", server)
+
+		request := PingReq{}
+		response := new(PingRes)
+		t := time.Now()
+		client.Call("ServerCommands.Ping", request, response)
+		ping := int(time.Since(t) / time.Millisecond)
+		totalPing += ping
+		client.Close()
+	}
+	res.TotalPing = totalPing
+	return
+}
+
 func checkAlive(myID int, checkID int) {
 	destIP := NODES[checkID]
 	client, error := rpc.Dial("tcp", destIP+":8030")

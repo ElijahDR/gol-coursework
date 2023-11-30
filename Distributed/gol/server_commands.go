@@ -58,3 +58,6 @@ type HaloRegionRes struct {
 
 type PingReq struct{}
 type PingRes struct{ Ping bool }
+
+type NomBrokerReq struct{}
+type NomBrokerRes struct{ ID int }
