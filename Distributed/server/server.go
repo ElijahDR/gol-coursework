@@ -180,7 +180,7 @@ func main() {
 
 	go rpc.Accept(listener)
 	<-quit
-	time.Sleep(1 * time.Second)
+	time.Sleep(2 * time.Second)
 	if broker {
 		for i, conn := range CONNECTIONS {
 			fmt.Print("closing", i, "...")
