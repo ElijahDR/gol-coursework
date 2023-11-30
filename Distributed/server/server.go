@@ -67,7 +67,11 @@ func (s *ServerCommands) RunGOL(req GolRequest, res *GolResponse) (err error) {
 	// s.broker = false
 	fmt.Println("Returned main RUNGOL Request")
 	if code == 2 {
-		s.quit <- true
+		defer func() {
+			go func() {
+				s.quit <- true
+			}()
+		}()
 	}
 	return
 }
@@ -78,6 +82,7 @@ func (s *ServerCommands) KeyPress(req KeyPressRequest, res *KeyPressResponse) (e
 	res.World = util.ConvertToUint8(s.currentWorld)
 	res.Turn = s.currentTurn
 	s.keyPresses <- key
+	fmt.Println("returned keyPress")
 	return
 }
 
@@ -177,11 +182,13 @@ func main() {
 
 	if broker {
 		for i, conn := range CONNECTIONS {
+			fmt.Print("closing", i, "...")
 			if i == id {
 				continue
 			}
 			conn.Call("ServerCommands.Quit", new(QuitReq), new(QuitRes))
 			conn.Close()
+			fmt.Print("closed", i, "!")
 		}
 	}
 }
