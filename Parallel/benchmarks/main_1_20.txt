@@ -1,0 +1,24 @@
+goos: darwin
+goarch: arm64
+pkg: uk.ac.bris.cs/gameoflife
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2555775667 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2470438458 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2450458292 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2434579875 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2495112500 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2439906958 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2524088084 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2490595834 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2463014500 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2482733042 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2394901917 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2465473625 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2418354875 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2410251375 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2389386667 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2395676417 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2401434916 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2375564292 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2416976125 ns/op
+BenchmarkGolThreads/512x512x1000-1-10         	       1	2386448250 ns/op
+ok  	uk.ac.bris.cs/gameoflife	51.948s

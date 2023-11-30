@@ -1,0 +1,9 @@
+{
+    "host": "LocalHost",
+    "port": 22,
+    "user": "root",
+    "ignore":[".git",".vscode"],
+    "remotePath": "~/",
+    "identity_file": "~/.ssh/GOL_KEYS.pem",
+    "uploadOnSave": true
+}

@@ -9,6 +9,10 @@ import (
 	"uk.ac.bris.cs/gameoflife/sdl"
 )
 
+func getGOMAXPROCS() int {
+	return runtime.GOMAXPROCS(0)
+}
+
 // main is the function called when starting Game of Life with 'go run .'
 func main() {
 	runtime.LockOSThread()
@@ -38,6 +42,12 @@ func main() {
 		10000000000,
 		"Specify the number of turns to process. Defaults to 10000000000.")
 
+	// flag.StringVar(
+	// 	&params.Type,
+	// 	"type",
+	// 	"p",
+	// 	"Specify the type of GOL to run: p for parallel, d for distributed")
+
 	noVis := flag.Bool(
 		"noVis",
 		false,
@@ -48,6 +58,15 @@ func main() {
 	fmt.Println("Threads:", params.Threads)
 	fmt.Println("Width:", params.ImageWidth)
 	fmt.Println("Height:", params.ImageHeight)
+	// fmt.Printf("GOMAXPROCS is %d\n", getGOMAXPROCS())
+
+	// if params.Type == "p" {
+	// 	fmt.Println("Running Parallel")
+	// } else if params.Type == "d" {
+	// 	fmt.Println("Running Distributed")
+	// } else {
+	// 	panic("Unkown type! Please use p or d")
+	// }
 
 	keyPresses := make(chan rune, 10)
 	events := make(chan gol.Event, 1000)
