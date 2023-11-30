@@ -58,7 +58,7 @@ func BenchmarkServer(b *testing.B) {
 	os.Stdout = nil // Disable all program output apart from benchmark results
 	p := gol.Params{
 		Turns:       100,
-		Threads:     8,
+		Threads:     16,
 		ImageWidth:  512,
 		ImageHeight: 512,
 	}
