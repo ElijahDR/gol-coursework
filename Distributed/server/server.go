@@ -197,11 +197,11 @@ func (s *ServerCommands) NominateBroker(req NomBrokerReq, res *NomBrokerRes) (er
 
 		if response.Broker {
 			fmt.Println(ip, "already broker!")
-			res.ID = id
+			res.ID = i
 			return
 		}
 
-		fmt.Println("Still running")
+		// fmt.Println("Still running")
 		if response.TotalPing < min {
 			id = i
 			min = response.TotalPing
