@@ -1,0 +1,13 @@
+goos: darwin
+goarch: arm64
+pkg: uk.ac.bris.cs/gameoflife
+BenchmarkServer/512x512x100-16-10         	       1	1699359292 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1583663250 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1537616750 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1620518666 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1601827750 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1550008416 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1730245292 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1660902458 ns/op
+BenchmarkServer/512x512x100-16-10         	       1	1734976042 ns/op
+ok  	uk.ac.bris.cs/gameoflife	21.120s

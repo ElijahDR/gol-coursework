@@ -1,0 +1,24 @@
+goos: darwin
+goarch: arm64
+pkg: uk.ac.bris.cs/gameoflife
+BenchmarkGol/512x512x100-1-10         	       1	1703130208 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1702462917 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1598122000 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1622792375 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	2032746458 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1584112458 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1687511209 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1774077209 ns/op
+BenchmarkGol/512x512x100-1-10         	       1	1772730709 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	2785796542 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3081120917 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3452215917 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3456536083 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3315557417 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3407794500 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3397624000 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3422146625 ns/op
+BenchmarkGol/512x512x100-2-10         	       1	3321645125 ns/op
+BenchmarkGol/512x512x100-3-10         	       1	3344825708 ns/op
+BenchmarkGol/512x512x100-3-10         	       1	3590729292 ns/op
+BenchmarkGol/512x512x100-3-10         	

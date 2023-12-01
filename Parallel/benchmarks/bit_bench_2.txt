@@ -1,0 +1,2 @@
+File 512x512 input done!
+Alive Cells 6715

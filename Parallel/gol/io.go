@@ -6,6 +6,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
 	"uk.ac.bris.cs/gameoflife/util"
 )
 
@@ -146,4 +147,26 @@ func startIo(p Params, c ioChannels) {
 			}
 		}
 	}
+}
+
+func readWorld(p Params, c distributorChannels) [][]uint8 {
+	var world [][]uint8
+
+	c.ioCommand <- ioInput
+	filename := fmt.Sprint(p.ImageWidth, "x", p.ImageHeight)
+
+	c.ioFilename <- filename
+	for y := 0; y < p.ImageHeight; y++ {
+		line := make([]uint8, 0)
+		for x := 0; x < p.ImageWidth; x++ {
+			value := <-c.ioInput
+			line = append(line, value)
+			if value == 255 {
+				reportCells(c, 0, []int{x, y})
+			}
+		}
+		world = append(world, line)
+	}
+
+	return world
 }
